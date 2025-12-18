@@ -1,0 +1,17 @@
+{
+  "initialLevel": 1,
+  "maxSimultaneousPatients": 2,
+  "newPatientIntervalSeconds": 60,
+  "levelRequirements": {
+    "1": { "minAccuracy": 0.5, "maxErrors": 3 },
+    "2": { "minAccuracy": 0.7, "maxErrors": 2 },
+    "3": { "minAccuracy": 0.9, "maxErrors": 1 }
+  },
+  "scoring": {
+    "basePoints": 100,
+    "correctActionBonus": 20,
+    "timeBonusMultiplier": 1,
+    "errorPenalty": 50,
+    "deathPenalty": 100
+  }
+}
