@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador Médico</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Font Awesome icons for medical symbols -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-tcd5tNwcWrV9GgacQJXnjN/xnGX8YNl7D4cG4e+2z0wjLw88YteE5F7ZoyQIOyST/5Hahpcjdf7uiPNZ4Lu+wQ=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+  <div id="app">
+    <!-- Tela de criação de avatar / perfil -->
+    <div id="start-screen" class="screen active">
+      <h1>Simulador de Pronto‑Atendimento</h1>
+      <p>Insira seu nome e escolha seu avatar para iniciar o plantão:</p>
+      <div class="form-group">
+        <label for="player-name">Nome:</label>
+        <input type="text" id="player-name" placeholder="Seu nome" />
+      </div>
+      <div class="form-group">
+        <label>Escolha um Avatar:</label>
+        <div id="avatar-options" class="avatar-options">
+          <!-- Avatares listados por script -->
+        </div>
+      </div>
+      <button id="start-button" class="primary-button">Começar</button>
+    </div>
+
+    <!-- Tela do plantão -->
+    <div id="game-screen" class="screen">
+      <header class="header">
+        <div class="header-left">
+          <div class="player-info">
+            <img id="player-avatar" class="avatar-image" alt="Avatar do jogador" />
+            <span id="player-name-display"></span>
+          </div>
+          <div class="stats">
+            <span id="level-display">Nível 1</span>
+            <span id="score-display">Pontuação: 0</span>
+            <span id="timer-display"></span>
+          </div>
+        </div>
+        <div class="header-right">
+          <button id="pause-button" class="secondary-button">Pausar</button>
+        </div>
+      </header>
+      <main class="main-content">
+        <!-- Painel de pacientes à esquerda -->
+        <aside id="patient-queue" class="patient-queue">
+          <!-- Pacientes serão renderizados aqui -->
+        </aside>
+        <!-- Área de detalhes e ações -->
+        <section id="patient-details" class="patient-details">
+          <h2>Selecione um paciente para começar</h2>
+        </section>
+      </main>
+      <!-- Modal de Feedback após atendimento -->
+      <div id="feedback-modal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Feedback do Atendimento</h3>
+          <div id="feedback-body"></div>
+          <button id="feedback-close" class="primary-button">Continuar</button>
+        </div>
+      </div>
+      <!-- Modal de Game Over -->
+      <div id="gameover-modal" class="modal hidden">
+        <div class="modal-content">
+          <h3>Plantão Encerrado</h3>
+          <p id="gameover-message"></p>
+          <button id="restart-button" class="primary-button">Reiniciar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- script normal (não módulo) para permitir execução via protocolo file:// -->
+  <script src="script.js"></script>
+</body>
+</html>
