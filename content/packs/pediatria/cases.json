@@ -1,0 +1,173 @@
+[
+  {
+    "id": "dlc_peds_bronquiolite_01",
+    "title": "Lactente com sibilância",
+    "specialty": "Pediatria",
+    "difficulty": 2,
+    "triage": 2,
+    "patient": {
+      "name": "Bebê L.",
+      "age": 1,
+      "sex": "F"
+    },
+    "chiefComplaint": "Chiado no peito e dificuldade para mamar desde ontem.",
+    "history": [
+      "Coriza há 3 dias.",
+      "Febre baixa.",
+      "Sem comorbidades."
+    ],
+    "vitalsInitial": {
+      "hr": 160,
+      "rr": 48,
+      "spo2": 90,
+      "sbp": 86,
+      "dbp": 52,
+      "temp": 37.8
+    },
+    "physicalFindings": [
+      "Tiragem intercostal.",
+      "Sibilos difusos.",
+      "Hidratação limítrofe."
+    ],
+    "exams": {
+      "oximetry": "SatO2 90% em ar ambiente.",
+      "xray": "Hiperinsuflação, sem consolidação."
+    },
+    "treatments": {
+      "oxygen": {
+        "text": "Oxigênio por cateter."
+      },
+      "hydration": {
+        "text": "Hidratação conforme tolerância."
+      }
+    },
+    "correct": {
+      "diagnosis": "Bronquiolite viral",
+      "requiredExams": [
+        "oximetry"
+      ],
+      "helpfulExams": [
+        "xray"
+      ],
+      "requiredTreatments": [
+        "oxygen"
+      ],
+      "criticalMistakes": [
+        "delay_oxygen"
+      ]
+    },
+    "education": {
+      "summary": "Bronquiolite é suporte: oxigênio e hidratação. Evitar antibiótico sem indicação.",
+      "keyPoints": [
+        "Oximetria guia gravidade.",
+        "Suporte é a base.",
+        "Observar sinais de fadiga respiratória."
+      ]
+    },
+    "deterioration": {
+      "stableToUnstableSec": 25,
+      "unstableToCriticalSec": 20,
+      "criticalToDeadSec": 18
+    },
+    "variants": {
+      "names": [
+        "Bebê L.",
+        "Ana B.",
+        "Luiza R."
+      ],
+      "ages": [
+        1,
+        2
+      ],
+      "sexes": [
+        "F"
+      ]
+    }
+  },
+  {
+    "id": "dlc_peds_desidratacao_01",
+    "title": "Diarreia e vômitos",
+    "specialty": "Pediatria",
+    "difficulty": 1,
+    "triage": 3,
+    "patient": {
+      "name": "João P.",
+      "age": 4,
+      "sex": "M"
+    },
+    "chiefComplaint": "Diarreia e vômitos há 2 dias, sonolento.",
+    "history": [
+      "Redução de diurese.",
+      "Sem sangue nas fezes.",
+      "Sem doenças prévias."
+    ],
+    "vitalsInitial": {
+      "hr": 132,
+      "rr": 26,
+      "spo2": 98,
+      "sbp": 90,
+      "dbp": 55,
+      "temp": 37.2
+    },
+    "physicalFindings": [
+      "Mucosas secas.",
+      "Olhos encovados.",
+      "Enchimento capilar 3s."
+    ],
+    "exams": {
+      "glucose": "Glicemia capilar 82 mg/dL.",
+      "labs": "Eletrólitos levemente alterados."
+    },
+    "treatments": {
+      "ors": {
+        "text": "SRO em pequenos volumes."
+      },
+      "iv_fluids": {
+        "text": "Expansão volêmica se necessário."
+      }
+    },
+    "correct": {
+      "diagnosis": "Desidratação por gastroenterite",
+      "requiredExams": [
+        "glucose"
+      ],
+      "helpfulExams": [
+        "labs"
+      ],
+      "requiredTreatments": [
+        "ors"
+      ],
+      "criticalMistakes": [
+        "no_fluids"
+      ]
+    },
+    "education": {
+      "summary": "Gastroenterite: foco em reidratação e monitorização.",
+      "keyPoints": [
+        "SRO se tolerado.",
+        "Avaliar perfusão e diurese.",
+        "Considerar EV se sinais de choque."
+      ]
+    },
+    "deterioration": {
+      "stableToUnstableSec": 35,
+      "unstableToCriticalSec": 25,
+      "criticalToDeadSec": 20
+    },
+    "variants": {
+      "names": [
+        "João P.",
+        "Miguel A.",
+        "Pedro S."
+      ],
+      "ages": [
+        3,
+        4,
+        5
+      ],
+      "sexes": [
+        "M"
+      ]
+    }
+  }
+]

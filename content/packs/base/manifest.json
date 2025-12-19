@@ -1,0 +1,11 @@
+{
+  "id": "base",
+  "name": "Conteúdo Base",
+  "version": "1.0.0",
+  "enabledByDefault": true,
+  "casesFile": "cases.json",
+  "assets": {
+    "images": [],
+    "audio": []
+  }
+}

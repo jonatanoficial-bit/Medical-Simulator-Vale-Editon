@@ -1,0 +1,16 @@
+{
+  "packs": [
+    {
+      "id": "base",
+      "manifest": "content/packs/base/manifest.json"
+    },
+    {
+      "id": "pediatria",
+      "manifest": "content/packs/pediatria/manifest.json"
+    },
+    {
+      "id": "trauma",
+      "manifest": "content/packs/trauma/manifest.json"
+    }
+  ]
+}

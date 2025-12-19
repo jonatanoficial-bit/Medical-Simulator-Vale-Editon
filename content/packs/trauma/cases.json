@@ -1,0 +1,172 @@
+[
+  {
+    "id": "dlc_trauma_pneumotorax_01",
+    "title": "Trauma torácico",
+    "specialty": "Trauma",
+    "difficulty": 2,
+    "triage": 1,
+    "patient": {
+      "name": "Rafael K.",
+      "age": 29,
+      "sex": "M"
+    },
+    "chiefComplaint": "Acidente de moto, dor torácica e falta de ar.",
+    "history": [
+      "Colisão em alta velocidade.",
+      "Dispneia progressiva.",
+      "Nega perda de consciência."
+    ],
+    "vitalsInitial": {
+      "hr": 128,
+      "rr": 32,
+      "spo2": 84,
+      "sbp": 90,
+      "dbp": 58,
+      "temp": 36.5
+    },
+    "physicalFindings": [
+      "MV diminuído à direita.",
+      "Hipertimpanismo à direita.",
+      "Taquicardia."
+    ],
+    "exams": {
+      "xray": "Pneumotórax à direita.",
+      "us": "Ausência de deslizamento pleural à direita."
+    },
+    "treatments": {
+      "oxygen": {
+        "text": "Oxigênio alto fluxo."
+      },
+      "decompression": {
+        "text": "Descompressão torácica emergencial (agulha)."
+      }
+    },
+    "correct": {
+      "diagnosis": "Pneumotórax hipertensivo",
+      "requiredExams": [],
+      "helpfulExams": [
+        "us"
+      ],
+      "requiredTreatments": [
+        "decompression"
+      ],
+      "criticalMistakes": [
+        "delay_decompression"
+      ]
+    },
+    "education": {
+      "summary": "Pneumotórax hipertensivo é diagnóstico clínico e tratamento imediato.",
+      "keyPoints": [
+        "Não esperar RX para tratar se instável.",
+        "Descompressão salva vidas.",
+        "Depois: drenagem definitiva."
+      ]
+    },
+    "deterioration": {
+      "stableToUnstableSec": 15,
+      "unstableToCriticalSec": 12,
+      "criticalToDeadSec": 10
+    },
+    "variants": {
+      "names": [
+        "Rafael K.",
+        "Bruno L.",
+        "Diego N."
+      ],
+      "ages": [
+        24,
+        29,
+        33
+      ],
+      "sexes": [
+        "M"
+      ]
+    }
+  },
+  {
+    "id": "dlc_trauma_tce_01",
+    "title": "TCE com rebaixamento",
+    "specialty": "Trauma",
+    "difficulty": 3,
+    "triage": 1,
+    "patient": {
+      "name": "Helena D.",
+      "age": 41,
+      "sex": "F"
+    },
+    "chiefComplaint": "Queda, sonolência e vômitos, fala arrastada.",
+    "history": [
+      "Queda da própria altura com impacto na cabeça.",
+      "Episódio de vômito.",
+      "Em uso de anticoagulante."
+    ],
+    "vitalsInitial": {
+      "hr": 72,
+      "rr": 14,
+      "spo2": 97,
+      "sbp": 156,
+      "dbp": 92,
+      "temp": 36.9
+    },
+    "physicalFindings": [
+      "Glasgow 12.",
+      "Anisocoria discreta.",
+      "Equimose temporal."
+    ],
+    "exams": {
+      "ct": "Hematoma subdural agudo.",
+      "labs": "INR elevado."
+    },
+    "treatments": {
+      "ct_request": {
+        "text": "TC de crânio urgente."
+      },
+      "reverse_anticoag": {
+        "text": "Reversão de anticoagulação conforme protocolo."
+      }
+    },
+    "correct": {
+      "diagnosis": "Hematoma subdural",
+      "requiredExams": [
+        "ct"
+      ],
+      "helpfulExams": [
+        "labs"
+      ],
+      "requiredTreatments": [
+        "reverse_anticoag"
+      ],
+      "criticalMistakes": [
+        "send_home"
+      ]
+    },
+    "education": {
+      "summary": "TCE em anticoagulados tem alto risco: TC e reversão precoce.",
+      "keyPoints": [
+        "Anticoagulante aumenta sangramento.",
+        "TC urgente orienta conduta.",
+        "Acionar neurocirurgia cedo."
+      ]
+    },
+    "deterioration": {
+      "stableToUnstableSec": 20,
+      "unstableToCriticalSec": 15,
+      "criticalToDeadSec": 12
+    },
+    "variants": {
+      "names": [
+        "Helena D.",
+        "Carla M.",
+        "Renata S."
+      ],
+      "ages": [
+        38,
+        41,
+        47
+      ],
+      "sexes": [
+        "F"
+      ]
+    }
+  }
+]
