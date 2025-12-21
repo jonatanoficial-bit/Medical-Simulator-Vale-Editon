@@ -1,0 +1,11 @@
+{
+  "packs": [
+    {
+      "id": "base",
+      "name": "Base",
+      "enabled": true,
+      "casesFile": "cases_base.json",
+      "assets": []
+    }
+  ]
+}
