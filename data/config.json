@@ -1,0 +1,56 @@
+{
+  "version": "1.0.0",
+  "tickMs": 1000,
+  "examDelaysMinutes": {
+    "hemograma": 15,
+    "ureia_creatinina": 30,
+    "eletrólitos": 30,
+    "gasometria": 10,
+    "lactato": 15,
+    "troponina": 60,
+    "d_dimero": 45,
+    "pcr": 60,
+    "urina_tipo_1": 40,
+    "beta_hcg": 30
+  },
+  "imagingDelaysMinutes": {
+    "rx_torax": 25,
+    "rx_abdome": 25,
+    "usg_abdome": 45,
+    "tc_cranio": 60,
+    "tc_torax": 75,
+    "tc_abdome": 90,
+    "rm_cranio": 180
+  },
+  "otherExamDelaysMinutes": {
+    "ecg": 10,
+    "glicemia_capilar": 5,
+    "saturacao": 1
+  },
+  "scoring": {
+    "baseCorrectDiagnosis": 120,
+    "baseWrongDiagnosis": -80,
+    "perCorrectKeyAction": 15,
+    "perWrongAction": -8,
+    "deathPenalty": -200,
+    "timeBonusPerMinuteSaved": 2
+  },
+  "campaign": {
+    "startRank": "Residente",
+    "ranks": [
+      { "name": "Residente", "minScore": 0 },
+      { "name": "Plantonista", "minScore": 300 },
+      { "name": "Médico Assistente", "minScore": 800 },
+      { "name": "Chefe de Plantão", "minScore": 1500 },
+      { "name": "Coordenador", "minScore": 2500 }
+    ]
+  },
+  "triage": {
+    "colors": [
+      { "code": "VERMELHO", "label": "Emergência", "maxWaitMinutes": 5 },
+      { "code": "LARANJA", "label": "Muito urgente", "maxWaitMinutes": 10 },
+      { "code": "AMARELO", "label": "Urgente", "maxWaitMinutes": 30 },
+      { "code": "VERDE", "label": "Pouco urgente", "maxWaitMinutes": 90 }
+    ]
+  }
+}
