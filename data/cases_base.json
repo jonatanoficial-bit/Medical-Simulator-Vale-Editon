@@ -1,106 +1,77 @@
-{
-  "cases": [
-    {
-      "id": "case_appendicitis_01",
-      "specialty": "Clínica/Abdome",
-      "difficulty": 1,
-      "patient": {
-        "sex": "M",
-        "name": "João Ferreira",
-        "age": 55,
-        "chiefComplaint": "Dor abdominal intensa no quadrante inferior direito",
-        "triage": "AMARELO"
-      },
-      "baselineVitals": { "sbp": 118, "dbp": 74, "hr": 96, "spo2": 98, "temp": 37.8, "rr": 18 },
-      "story": {
-        "history": [
-          "Dor iniciou há 12 horas, piorando progressivamente",
-          "Náuseas e 1 episódio de vômito",
-          "Sem diarreia",
-          "Sem alergias conhecidas"
-        ],
-        "physicalExam": {
-          "Geral": ["Dor à palpação em FID", "Fácies de dor"],
-          "Abdome": ["Defesa em FID", "Sinal de Blumberg positivo"],
-          "Respiratório": ["Sem ruídos adventícios"],
-          "Cardiovascular": ["Ritmo regular"]
-        }
-      },
-      "trueDiagnosis": "Apendicite aguda",
-      "keyActions": {
-        "other": ["Monitorização cardíaca", "Acesso venoso periférico"],
-        "labs": ["Hemograma", "PCR"],
-        "imaging": ["USG Abdome Total"],
-        "procedures": [],
-        "treatments": ["Dipirona", "Soro fisiológico 0,9%"]
-      },
-      "examResults": {
-        "lab": {
-          "Hemograma": "Leucócitos 16.800; neutrofilia.",
-          "PCR": "PCR 7,2 mg/dL (elevado)."
-        },
-        "imaging": {
-          "USG Abdome Total": "Apendice espessado, não compressível, 9 mm. Líquido pericecal discreto."
-        },
-        "other": {
-          "ECG": "Ritmo sinusal."
-        }
-      },
-      "deteriorationModel": {
-        "severity": "moderate",
-        "minuteEffects": { "temp": 0.01, "hr": 0.15, "sbp": -0.05, "pain": 0.12 },
-        "criticalThresholds": { "sbp": 90, "spo2": 90 }
-      }
+[
+  {
+    "id": "case_appendicitis",
+    "specialty": "clínica",
+    "gender": "male",
+    "age": 22,
+    "complaint": "Dor abdominal migratória para FID, náuseas e febre baixa.",
+    "history": "Início há 12h. Dor peri-umbilical que migrou para FID. Sem diarreia. Sem cirurgias prévias.",
+    "physicalExam": "Dor à palpação em FID, defesa leve, Blumberg discreto. Sem icterícia.",
+    "diagnosis": "Apendicite aguda",
+    "differentials": ["Gastroenterite", "Cólica renal", "Pielonefrite"],
+    "initialSeverity": 0.35,
+    "requiredExams": ["Hemograma completo", "PCR", "Ultrassom de abdome total"],
+    "harmfulExams": ["TC de crânio sem contraste", "Doppler venoso de MMII"],
+    "requiredMeds": ["Soro fisiológico 0,9% 1.000 mL", "Dipirona IV"],
+    "harmfulMeds": ["Heparina IV", "Insulina regular IV (protocolo)"],
+    "examResults": {
+      "Hemograma completo": "Leucocitose 15.800 com desvio à esquerda.",
+      "PCR": "PCR 6,8 mg/dL (elevada).",
+      "Ultrassom de abdome total": "Apêndice não compressível 8 mm, sinais inflamatórios periappendiculares."
     },
-    {
-      "id": "case_opioid_overdose_01",
-      "specialty": "Toxicologia",
-      "difficulty": 2,
-      "patient": {
-        "sex": "M",
-        "name": "Eduardo Reis",
-        "age": 40,
-        "chiefComplaint": "Confusão mental, bradicardia e sonolência intensa",
-        "triage": "VERMELHO"
-      },
-      "baselineVitals": { "sbp": 96, "dbp": 58, "hr": 48, "spo2": 84, "temp": 36.5, "rr": 8 },
-      "story": {
-        "history": [
-          "Encontrado sonolento em casa",
-          "Pupilas puntiformes",
-          "Sem febre",
-          "Uso de analgésicos por dor crônica"
-        ],
-        "physicalExam": {
-          "Geral": ["Sonolento", "Pupilas puntiformes", "Fala arrastada"],
-          "Respiratório": ["Bradipneia", "Hipoventilação"],
-          "Cardiovascular": ["Bradicardia"],
-          "Neurológico": ["Rebaixamento do nível de consciência"]
-        }
-      },
-      "trueDiagnosis": "Intoxicação por opioides",
-      "keyActions": {
-        "other": ["Saturação (oximetria)", "Glicemia capilar"],
-        "labs": ["Gasometria arterial"],
-        "imaging": [],
-        "procedures": ["Oxigênio por cateter", "Monitorização cardíaca"],
-        "treatments": ["Naloxona"]
-      },
-      "examResults": {
-        "lab": {
-          "Gasometria arterial": "pH 7,25; pCO2 62; HCO3 26 (acidose respiratória)."
-        },
-        "imaging": {},
-        "other": {
-          "Glicemia capilar": "92 mg/dL",
-          "ECG": "Bradicardia sinusal."
-        }
-      },
-      "deteriorationModel": {
-        "severity": "high",
-        "minuteEffects": { "spo2": -0.25, "rr": -0.08, "sbp": -0.08, "hr": -0.05 },
-        "criticalThresholds": { "spo2": 75, "rr": 6, "sbp": 80 }
-      }
+    "medEffects": {
+      "Soro fisiológico 0,9% 1.000 mL": { "delaySeconds": 3, "severityDelta": -0.08 },
+      "Dipirona IV": { "delaySeconds": 2, "severityDelta": -0.05 }
     }
-  ]
-}
+  },
+  {
+    "id": "case_tep",
+    "specialty": "clínica",
+    "gender": "female",
+    "age": 41,
+    "complaint": "Dispneia súbita e dor torácica pleurítica.",
+    "history": "Início súbito há 1h. Usa anticoncepcional. Dor pleurítica, sem febre. Sem tosse produtiva.",
+    "physicalExam": "Taquipneia, taquicardia. Sem crepitações. Panturrilha dolorosa à palpação.",
+    "diagnosis": "TEP (tromboembolismo pulmonar)",
+    "differentials": ["Pneumonia", "Asma aguda", "SCA (IAM/Angina instável)"],
+    "initialSeverity": 0.55,
+    "requiredExams": ["ECG 12 derivações", "D-dímero", "AngioTC de tórax (TEP)"],
+    "harmfulExams": ["Raio-X de abdome", "RM de coluna"],
+    "requiredMeds": ["Oxigênio por cateter", "Heparina IV"],
+    "harmfulMeds": ["Amoxicilina VO", "Insulina regular IV (protocolo)"],
+    "examResults": {
+      "ECG 12 derivações": "Taquicardia sinusal. Sinais inespecíficos.",
+      "D-dímero": "D-dímero 2.400 ng/mL (elevado).",
+      "AngioTC de tórax (TEP)": "Defeitos de enchimento em artérias segmentares compatíveis com TEP."
+    },
+    "medEffects": {
+      "Oxigênio por cateter": { "delaySeconds": 2, "severityDelta": -0.08 },
+      "Heparina IV": { "delaySeconds": 4, "severityDelta": -0.10 }
+    }
+  },
+  {
+    "id": "case_overdose_opioid",
+    "specialty": "emergência",
+    "gender": "male",
+    "age": 30,
+    "complaint": "Confusão mental, bradipneia e sonolência após uso de substância.",
+    "history": "Encontrado sonolento. Pupilas puntiformes. Sem trauma evidente. Amigos relatam uso de opioides.",
+    "physicalExam": "Bradipneia, pupilas mióticas, rebaixamento do nível de consciência.",
+    "diagnosis": "Intoxicação/overdose",
+    "differentials": ["Hipoglicemia", "AVC isquêmico", "TCE"],
+    "initialSeverity": 0.75,
+    "requiredExams": ["Glicemia capilar", "Monitorização cardíaca contínua", "Oximetria contínua"],
+    "harmfulExams": ["Ultrassom de vias urinárias", "Doppler venoso de MMII"],
+    "requiredMeds": ["Naloxona IV", "Ventilação com BVM"],
+    "harmfulMeds": ["Morfina IV", "Fentanil IV"],
+    "examResults": {
+      "Glicemia capilar": "Glicemia 98 mg/dL.",
+      "Monitorização cardíaca contínua": "Ritmo sinusal, bradicardia leve.",
+      "Oximetria contínua": "SpO2 86% em ar ambiente."
+    },
+    "medEffects": {
+      "Naloxona IV": { "delaySeconds": 2, "severityDelta": -0.25 },
+      "Ventilação com BVM": { "delaySeconds": 1, "severityDelta": -0.20 }
+    }
+  }
+]
