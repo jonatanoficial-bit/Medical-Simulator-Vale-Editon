@@ -1,224 +1,145 @@
 /* ============================================================
-   Simulador Médico - Web (Single File)
-   UI: telas + overlays
-   Engine: motor de plantão + fisiologia (simplificado)
-   Persistência: localStorage
-   ============================================================ */
+   Simulador Médico - Versão 1.0 (Web)
+   - UI: Camadas de telas + overlays
+   - Engine: motor de plantão + fisiologia (simplificado)
+   - Persistência: localStorage
+============================================================ */
 
-/* ================================
-   Persistência do perfil
-   ================================ */
+// ================================
+// Perfil do jogador
+// ================================
 function loadPlayerProfile() {
   try {
     const raw = localStorage.getItem("medsim_playerProfile");
     if (!raw) return null;
     return JSON.parse(raw);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 function savePlayerProfile(profile) {
   try {
     localStorage.setItem("medsim_playerProfile", JSON.stringify(profile));
-  } catch (e) {}
+  } catch {}
 }
 let playerProfile = loadPlayerProfile();
 if (playerProfile) window.playerProfile = playerProfile;
 
-/* ================================
-   Utilitários
-   ================================ */
-function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
-function randomBetween(min, max) { return Math.random() * (max - min) + min; }
-function randomBetweenInt(min, max) { return Math.floor(randomBetween(min, max + 1)); }
-function round1(v) { return Math.round(v * 10) / 10; }
-function normalize(s) {
-  return String(s || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// ================================
+// Catálogos (exames/meds/diagnósticos) via data/catalogs.json
+// ================================
+const catalogsFallback = () => ({
+  labExams: ["Hemograma completo", "PCR", "Gasometria arterial", "Lactato", "Eletrólitos (Na/K/Cl)"],
+  imagingExams: ["Raio-X de tórax", "TC de abdome e pelve", "TC de crânio sem contraste"],
+  otherExams: ["ECG 12 derivações", "Oximetria contínua", "Glicemia capilar"],
+  ivMeds: ["Soro fisiológico 0,9% 1.000 mL", "Dipirona IV", "Ondansetrona IV", "Naloxona IV"],
+  homeMeds: ["Dipirona VO", "Paracetamol VO", "Hidratação oral e dieta leve"],
+  procedures: ["Oxigênio por cateter", "Ventilação com BVM", "Acesso venoso periférico"],
+  diagnoses: ["Apendicite aguda", "TEP (tromboembolismo pulmonar)", "Intoxicação/overdose"]
+});
+
+let catalogs = catalogsFallback();
+
+async function loadCatalogs() {
+  try {
+    const res = await fetch("data/catalogs.json", { cache: "no-store" });
+    if (res.ok) catalogs = await res.json();
+  } catch {
+    catalogs = catalogsFallback();
+  }
 }
-function safeText(s) { return String(s || "").replace(/[<>]/g, ""); }
+
+// ================================
+// Avatares / imagens obrigatórias
+// ================================
+const avatars = [
+  { name: "Avatar 1", image: "images/avatar1.png" },
+  { name: "Avatar 2", image: "images/avatar2.png" },
+  { name: "Avatar 3", image: "images/avatar3.png" },
+  { name: "Avatar 4", image: "images/avatar4.png" },
+  { name: "Avatar 5", image: "images/avatar5.png" },
+  { name: "Avatar 6", image: "images/avatar6.png" }
+];
+
+function patientPortrait(gender) {
+  return gender === "female" ? "images/patient_female.png" : "images/patient_male.png";
+}
+
+// ================================
+// Utils
+// ================================
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+function randomBetween(a, b) { return a + Math.random() * (b - a); }
+function randomBetweenInt(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
+function round1(n) { return Math.round(n * 10) / 10; }
+function normalize(s) { return String(s || "").trim().toLowerCase(); }
 
 function formatVitals(v) {
   return [
+    `PA: ${v.sys} mmHg`,
     `FC: ${v.hr} bpm`,
     `FR: ${v.rr} irpm`,
-    `SpO₂: ${v.spo2}%`,
-    `PA sistólica: ${v.sys} mmHg`,
-    `Temp: ${v.temp} °C`,
+    `SpO2: ${v.spo2}%`,
+    `Temp: ${v.temp} °C`
   ].join("\n");
 }
 
-/* ================================
-   Catálogo “grande” de exames/meds/dx
-   (para induzir erro: sempre mostrar tudo)
-   ================================ */
-
-const EXAMS_LAB = [
-  "Hemograma", "PCR", "VHS", "Glicemia", "Ureia", "Creatinina",
-  "Sódio", "Potássio", "Cloro", "Magnésio", "Cálcio",
-  "Gasometria arterial", "Lactato", "Troponina", "CK-MB",
-  "Dímero-D", "Coagulograma (TP/INR, TTPa)", "TGO/TGP", "Bilirrubinas",
-  "Amilase/Lipase", "TSH/T4", "Urina I", "Urocultura",
-  "Beta-HCG", "Hemoculturas", "Procalcitonina",
-  "BNP/NT-proBNP"
-];
-
-const EXAMS_IMG = [
-  "RX Tórax", "RX Abdome", "RX Membro", "TC Crânio", "TC Tórax",
-  "TC Abdome", "TC Angio Tórax", "US Abdome Total", "US Pelve",
-  "US Doppler MMII", "RM Crânio", "Eco (Ecodoppler cardíaco)"
-];
-
-const EXAMS_OTHER = [
-  "ECG", "POCUS (US Beira-leito)", "Teste rápido COVID/Influenza",
-  "Teste de glicemia capilar", "Oximetria contínua", "Monitor cardíaco",
-  "Escala de Glasgow", "Escala de dor", "Teste ortostático"
-];
-
-const MED_IV = [
-  "SF 0,9% 500ml", "SF 0,9% 1000ml", "Ringer Lactato 1000ml",
-  "Dipirona IV", "Paracetamol IV", "Morfina IV", "Fentanil IV",
-  "Ondansetrona IV", "Metoclopramida IV", "Omeprazol IV",
-  "Ceftriaxona IV", "Piperacilina/Tazobactam IV",
-  "Azitromicina IV", "Heparina IV", "Enoxaparina SC",
-  "Adrenalina IM/IV", "Hidrocortisona IV", "Dexametasona IV",
-  "Salbutamol nebulização", "Ipratrópio nebulização",
-  "Insulina regular", "Glicose hipertônica 50%", "Naloxona",
-  "Nitroglicerina", "AAS", "Clopidogrel"
-];
-
-const MED_HOME = [
-  "Paracetamol VO", "Dipirona VO", "Ibuprofeno VO",
-  "Amoxicilina/Clavulanato VO", "Azitromicina VO",
-  "Omeprazol VO", "Prednisona VO", "Loratadina", "Captopril",
-  "Metformina", "Losartana", "Sertralina"
-];
-
-const PROCEDURES = [
-  "Oxigênio nasal", "Máscara não-reinalante", "Ventilação não invasiva (VNI)",
-  "Intubação orotraqueal", "Acesso venoso periférico", "Acesso intraósseo",
-  "Sonda vesical", "Sonda nasogástrica", "Sutura simples",
-  "Imobilização", "Reanimação cardiopulmonar (RCP)", "Desfibrilação",
-  "Controle de hemorragia", "Antissepsia/curativo"
-];
-
-const DIAGNOSES_ALL = [
-  "Síndrome coronariana aguda", "Pericardite", "Pneumonia",
-  "Embolia pulmonar", "Asma/Crise asmática", "DPOC exacerbado",
-  "Sepse", "Choque séptico", "Anafilaxia", "AVC isquêmico",
-  "AVC hemorrágico", "TCE", "Cetoacidose diabética",
-  "Hipoglicemia", "Pancreatite", "Apendicite", "Colecistite",
-  "Gastroenterite", "ITU/Pielonefrite", "Nefrolitíase",
-  "Intoxicação medicamentosa", "Crise hipertensiva"
-];
-
-/* Tempos aproximados (segundos) para resultado */
-function getExamDelaySeconds(examKey) {
-  const k = normalize(examKey);
-  if (k.includes("tc") || k.includes("rm")) return 70;
-  if (k.includes("rx")) return 40;
-  if (k.includes("ecg")) return 8;
-  if (k.includes("gasometr")) return 25;
-  if (k.includes("hemograma")) return 35;
-  if (k.includes("tropon")) return 50;
-  if (k.includes("dimer")) return 45;
-  if (k.includes("urina")) return 35;
-  if (k.includes("pcr")) return 40;
-  return 30;
+function randomName(gender) {
+  const male = ["João Ferreira", "Bruno Rocha", "Eduardo Reis", "Carlos Lima"];
+  const female = ["Maria Oliveira", "Ana Souza", "Camila Santos", "Juliana Costa"];
+  const list = gender === "female" ? female : male;
+  return list[Math.floor(Math.random() * list.length)];
 }
 
-/* ================================
-   Avatares
-   ================================ */
-const avatars = [
-  { name: "Médico 1", image: "images/avatar1.png" },
-  { name: "Médico 2", image: "images/avatar2.png" },
-  { name: "Médico 3", image: "images/avatar3.png" },
-];
+function getRankTitle(level) {
+  if (level >= 6) return "Médico Assistente";
+  if (level >= 5) return "Chefe de Plantão";
+  if (level >= 4) return "Fellow";
+  if (level >= 3) return "R3";
+  if (level >= 2) return "R2";
+  return "Residente";
+}
 
-/* ================================
-   Casos fallback (mínimo)
-   (Sem data/cases.json o jogo ainda funciona)
-   ================================ */
+function getExamDelaySeconds(examKey) {
+  const key = normalize(examKey);
+  if (key.includes("tc") || key.includes("angio") || key.includes("rm")) return 22;
+  if (key.includes("raio-x") || key.includes("ultrassom")) return 14;
+  if (key.includes("troponina") || key.includes("d-dímero")) return 16;
+  if (key.includes("hemograma") || key.includes("pcr") || key.includes("glicemia")) return 10;
+  if (key.includes("ecg")) return 6;
+  return 12;
+}
+
 function defaultCasesFallback() {
   return [
     {
-      id: "case_chestpain",
-      specialty: "clinica",
+      id: "fallback1",
+      specialty: "clínica",
       gender: "male",
-      age: 54,
-      complaint: "Dor torácica em aperto há 40 minutos, irradiando para braço esquerdo.",
-      history: "HAS, tabagista. Dor iniciou em repouso. Náuseas leves.",
-      physicalExam: "Paciente sudoreico, pálido, dor 8/10. Ausculta sem estertores.",
-      diagnosis: "Síndrome coronariana aguda",
-      differentials: ["Embolia pulmonar", "Pericardite", "Crise hipertensiva"],
-      requiredExams: ["ECG", "Troponina", "RX Tórax"],
-      harmfulExams: ["RM Crânio", "US Pelve"],
-      requiredMeds: ["AAS", "Nitroglicerina"],
-      harmfulMeds: ["Ibuprofeno VO"],
+      age: 28,
+      complaint: "Dor abdominal difusa e náuseas.",
+      history: "Sem alergias conhecidas. Dor há 8h, sem diarreia.",
+      physicalExam: "Dor à palpação difusa, sem rigidez.",
+      diagnosis: "Gastroenterite",
+      differentials: ["Apendicite aguda", "Colecistite aguda", "Pancreatite aguda"],
+      initialSeverity: 0.28,
+      requiredExams: ["Hemograma completo"],
+      harmfulExams: ["TC de crânio sem contraste"],
+      requiredMeds: ["Dipirona IV"],
+      harmfulMeds: ["Heparina IV"],
       examResults: {
-        "ECG": "Supradesnivelamento de ST em parede inferior.",
-        "Troponina": "Elevada (positivo).",
-        "RX Tórax": "Sem sinais de congestão."
+        "Hemograma completo": "Leucócitos 9.800, sem desvio."
       },
       medEffects: {
-        "AAS": { severityDelta: -0.10, delaySeconds: 3 },
-        "Nitroglicerina": { severityDelta: -0.08, delaySeconds: 6 }
-      },
-      initialSeverity: 0.55
-    },
-    {
-      id: "case_sepsis",
-      specialty: "clinica",
-      gender: "female",
-      age: 67,
-      complaint: "Febre, confusão e queda do estado geral há 2 dias.",
-      history: "DM2. Disúria prévia. Redução de ingesta.",
-      physicalExam: "Desidratada, extremidades frias, sonolenta. Dor em flanco direito.",
-      diagnosis: "Sepse",
-      differentials: ["ITU/Pielonefrite", "Pneumonia", "Gastroenterite"],
-      requiredExams: ["Hemograma", "Lactato", "Hemoculturas", "Urina I"],
-      harmfulExams: ["RM Crânio"],
-      requiredMeds: ["SF 0,9% 1000ml", "Ceftriaxona IV"],
-      harmfulMeds: ["Losartana"],
-      examResults: {
-        "Hemograma": "Leucocitose importante com desvio à esquerda.",
-        "Lactato": "Elevado.",
-        "Hemoculturas": "Coletadas (resultado pendente).",
-        "Urina I": "Piúria, nitrito positivo."
-      },
-      medEffects: {
-        "SF 0,9% 1000ml": { severityDelta: -0.12, delaySeconds: 8 },
-        "Ceftriaxona IV": { severityDelta: -0.18, delaySeconds: 20 }
-      },
-      initialSeverity: 0.62
+        "Dipirona IV": { "delaySeconds": 2, "severityDelta": -0.05 }
+      }
     }
   ];
 }
 
-/* ================================
-   Nomes / cargos
-   ================================ */
-function randomName(gender) {
-  const male = ["Carlos", "João", "Mateus", "Pedro", "Rafael", "Lucas"];
-  const female = ["Ana", "Mariana", "Juliana", "Camila", "Larissa", "Beatriz"];
-  const last = ["Silva", "Souza", "Oliveira", "Lima", "Costa", "Pereira"];
-  const fn = (gender === "female" ? female : male)[randomBetweenInt(0, 5)];
-  const ln = last[randomBetweenInt(0, 5)];
-  return `${fn} ${ln}`;
-}
-function getRankTitle(level) {
-  if (level <= 1) return "Residente";
-  if (level === 2) return "Plantonista Júnior";
-  if (level === 3) return "Plantonista Sênior";
-  return "Chefe do Plantão";
-}
-
-/* ================================
-   Engine
-   ================================ */
+// ================================
+// Engine
+// ================================
 class GameEngine {
   constructor(ui) {
     this.ui = ui;
@@ -260,7 +181,7 @@ class GameEngine {
         const data = await casesRes.json();
         this.cases = Array.isArray(data) ? data : (data.cases || []);
       }
-    } catch (e) {
+    } catch {
       this.cases = defaultCasesFallback();
     }
 
@@ -274,9 +195,8 @@ class GameEngine {
     this.player.name = name;
     this.player.avatarIndex = avatarIndex;
   }
-
-  setSpecialtyFilter(v) { this.specialtyFilter = v || "all"; }
-  setMode(mode) { this.mode = (mode === "training") ? "training" : "shift"; }
+  setSpecialtyFilter(value) { this.specialtyFilter = value || "all"; }
+  setMode(mode) { this.mode = mode === "training" ? "training" : "shift"; }
 
   start() {
     this.patients = [];
@@ -295,7 +215,9 @@ class GameEngine {
     if (this.newPatientInterval) clearInterval(this.newPatientInterval);
 
     this.tickInterval = setInterval(() => this.tick(), this.config.tickMs);
-    this.newPatientInterval = setInterval(() => this.spawnPatient(), this.config.baseNewPatientIntervalMs);
+
+    const base = this.config.baseNewPatientIntervalMs;
+    this.newPatientInterval = setInterval(() => this.spawnPatient(), base);
 
     this.spawnPatient();
     this.spawnPatient();
@@ -309,7 +231,7 @@ class GameEngine {
   }
 
   tick() {
-    const mult = (this.mode === "training")
+    const mult = this.mode === "training"
       ? this.config.training.deteriorationMultiplier
       : this.config.shift.deteriorationMultiplier;
 
@@ -317,7 +239,6 @@ class GameEngine {
       if (p.status === "dead" || p.status === "discharged") continue;
 
       p.time += 1;
-
       const deterioration = 0.08 * mult;
       p.severity = clamp(p.severity + deterioration, 0, 1);
 
@@ -350,7 +271,7 @@ class GameEngine {
       return normalize(c.specialty) === normalize(this.specialtyFilter);
     });
 
-    const caseData = (candidateCases.length > 0)
+    const caseData = candidateCases.length > 0
       ? candidateCases[Math.floor(Math.random() * candidateCases.length)]
       : this.cases[Math.floor(Math.random() * this.cases.length)];
 
@@ -363,11 +284,9 @@ class GameEngine {
       name: randomName(gender),
       gender,
       age: caseData.age || randomBetweenInt(18, 80),
-
       complaint: caseData.complaint || "Queixa inespecífica.",
       history: caseData.history || "Sem dados adicionais.",
       physicalExam: caseData.physicalExam || "Sem alterações relevantes.",
-
       diagnosis: caseData.diagnosis || "Diagnóstico não definido.",
       differentials: caseData.differentials || [],
       requiredExams: caseData.requiredExams || [],
@@ -375,18 +294,9 @@ class GameEngine {
       requiredMeds: caseData.requiredMeds || [],
       harmfulMeds: caseData.harmfulMeds || [],
       protocol: caseData.protocol || [],
-
       examResults: caseData.examResults || {},
       medEffects: caseData.medEffects || {},
-
-      requested: {
-        history: false,
-        physical_exam: false,
-        exams: [],
-        meds: [],
-        diagnosis: null
-      },
-
+      requested: { history: false, physical_exam: false, exams: [], meds: [], diagnosis: null },
       queuedEffects: [],
       time: 0,
       severity: clamp(caseData.initialSeverity ?? 0.25, 0, 1),
@@ -435,7 +345,7 @@ class GameEngine {
       if (!p.requested.exams.includes(examKey)) p.requested.exams.push(examKey);
 
       const baseDelay = getExamDelaySeconds(examKey);
-      const mult = (this.mode === "training") ? 0.55 : 1.0;
+      const mult = this.mode === "training" ? 0.55 : 1.0;
       const delay = Math.max(2, Math.round(baseDelay * mult));
 
       const result = p.examResults?.[examKey] || "Sem alterações específicas.";
@@ -457,31 +367,28 @@ class GameEngine {
         p.queuedEffects.push({ type: "med_effect", medKey, effect: eff, readyAt: p.time + delay });
       }
 
-      this.ui.toast(`Medicação/Procedimento aplicado: ${medKey}`);
+      this.ui.toast(`Aplicado: ${medKey}`);
       return;
     }
 
     if (action === "final_diagnosis") {
-      const diag = payload?.diagnosis;
-      p.requested.diagnosis = diag || null;
+      p.requested.diagnosis = payload?.diagnosis || null;
       this.evaluateCase(p);
       return;
     }
   }
 
   applyQueuedEffects(patient) {
-    if (!patient.queuedEffects || patient.queuedEffects.length === 0) return;
+    if (!patient.queuedEffects?.length) return;
     const now = patient.time;
 
     const ready = patient.queuedEffects.filter(e => e.readyAt <= now);
-    if (ready.length === 0) return;
+    if (!ready.length) return;
 
     patient.queuedEffects = patient.queuedEffects.filter(e => e.readyAt > now);
 
     for (const e of ready) {
-      if (e.type === "exam_result") {
-        this.ui.showExamResult(e.examKey, e.result);
-      }
+      if (e.type === "exam_result") this.ui.showExamResult(e.examKey, e.result);
       if (e.type === "med_effect") {
         const delta = e.effect.severityDelta || 0;
         patient.severity = clamp(patient.severity + delta, 0, 1);
@@ -502,21 +409,17 @@ class GameEngine {
 
     const missingExams = requiredExams.filter(x => !pickedExams.includes(x));
     const missingMeds = requiredMeds.filter(x => !pickedMeds.includes(x));
-
     const wrongExams = pickedExams.filter(x => harmfulExams.includes(x));
     const wrongMeds = pickedMeds.filter(x => harmfulMeds.includes(x));
 
-    const penaltyMult = (this.mode === "training")
+    const penaltyMult = this.mode === "training"
       ? this.config.training.penaltyMultiplier
       : this.config.shift.penaltyMultiplier;
 
     let points = 0;
-    if (diagCorrect) points += 120;
-    else points -= 90 * penaltyMult;
-
+    points += diagCorrect ? 120 : -90 * penaltyMult;
     points += (requiredExams.length - missingExams.length) * 12;
     points += (requiredMeds.length - missingMeds.length) * 18;
-
     points -= wrongExams.length * 10 * penaltyMult;
     points -= wrongMeds.length * 18 * penaltyMult;
 
@@ -524,11 +427,8 @@ class GameEngine {
     points -= timePenalty * 2 * penaltyMult;
 
     let outcome = "stable";
-    if (!diagCorrect && (wrongMeds.length > 0 || missingMeds.length > 1) && patient.severity > 0.85) {
-      outcome = "death";
-    } else if (diagCorrect && missingMeds.length === 0) {
-      outcome = "improved";
-    }
+    if (!diagCorrect && (wrongMeds.length > 0 || missingMeds.length > 1) && patient.severity > 0.85) outcome = "death";
+    else if (diagCorrect && missingMeds.length === 0) outcome = "improved";
 
     if (outcome === "death") {
       patient.status = "dead";
@@ -545,7 +445,6 @@ class GameEngine {
 
     this.score += points;
     this.totalScore += points;
-
     this.ui.updateScore(this.score);
 
     if (!playerProfile) playerProfile = window.playerProfile || null;
@@ -581,19 +480,96 @@ class GameEngine {
     if (this.totalScore > 300 && this.currentLevel < 2) this.currentLevel = 2;
     if (this.totalScore > 800 && this.currentLevel < 3) this.currentLevel = 3;
     if (this.totalScore > 1500 && this.currentLevel < 4) this.currentLevel = 4;
+    if (this.totalScore > 2500 && this.currentLevel < 5) this.currentLevel = 5;
+    if (this.totalScore > 4000 && this.currentLevel < 6) this.currentLevel = 6;
 
     this.ui.updateLevel(this.currentLevel);
     this.ui.refreshPatients(this.patients, this.activePatientId);
-    this.ui.updateOfficeFromProfile();
   }
 }
 
-/* ================================
-   UI
-   ================================ */
+// ================================
+// UI
+// ================================
 class GameUI {
   constructor() {
-    this.cover = document.getElementById("cover-screen");
-    this.welcome = document.getElementById("welcome-screen");
-    this.lobby = document.getElementById("lobby-screen");
-    this.office = document.getElementById("office-screen");
+    this.coverScreen = document.getElementById("cover-screen");
+    this.welcomeScreen = document.getElementById("welcome-screen");
+    this.lobbyScreen = document.getElementById("lobby-screen");
+    this.officeScreen = document.getElementById("office-screen");
+    this.gameScreen = document.getElementById("game-screen");
+
+    this.avatarSelection = document.getElementById("avatar-selection");
+
+    this.officeAvatar = document.getElementById("office-avatar");
+    this.officeName = document.getElementById("office-name");
+    this.officeLevel = document.getElementById("office-level");
+    this.officeRole = document.getElementById("office-role");
+    this.officeScore = document.getElementById("office-score");
+
+    this.statTotal = document.getElementById("stat-total");
+    this.statCorrect = document.getElementById("stat-correct");
+    this.statIncorrect = document.getElementById("stat-incorrect");
+    this.statDeaths = document.getElementById("stat-deaths");
+
+    this.accBar = document.getElementById("acc-bar");
+    this.accLabel = document.getElementById("acc-label");
+    this.careerLabel = document.getElementById("career-label");
+
+    this.specialtySelect = document.getElementById("specialty-select");
+    this.modeSelect = document.getElementById("mode-select");
+
+    this.levelDisplay = document.getElementById("level-display");
+    this.scoreDisplay = document.getElementById("score-display");
+    this.patientsList = document.getElementById("patients-list");
+    this.patientDetails = document.getElementById("patient-details");
+
+    this.examPage = document.getElementById("exam-page");
+    this.examContent = document.getElementById("exam-content");
+    this.examBack = document.getElementById("exam-back");
+
+    this.treatmentPage = document.getElementById("treatment-page");
+    this.treatmentContent = document.getElementById("treatment-content");
+    this.treatmentBack = document.getElementById("treatment-back");
+
+    this.diagnosisPage = document.getElementById("diagnosis-page");
+    this.diagnosisContent = document.getElementById("diagnosis-content");
+    this.diagnosisBack = document.getElementById("diagnosis-back");
+
+    this.toastEl = null;
+    this.reportOverlay = null;
+
+    this.selectedAvatarIndex = 0;
+    this.infoTitle = "";
+    this.infoText = "";
+  }
+
+  init(engine) {
+    // Touch-friendly: pointerdown
+    const goWelcome = () => {
+      this.coverScreen.classList.remove("active");
+      this.welcomeScreen.classList.add("active");
+    };
+    const goLobby = () => {
+      this.welcomeScreen.classList.remove("active");
+      this.lobbyScreen.classList.add("active");
+    };
+
+    this.coverScreen.addEventListener("pointerdown", goWelcome, { passive: true });
+    this.coverScreen.addEventListener("click", goWelcome);
+
+    this.welcomeScreen.addEventListener("pointerdown", goLobby, { passive: true });
+    this.welcomeScreen.addEventListener("click", goLobby);
+
+    this.renderAvatars();
+
+    fillSpecialties(engine.cases, this.specialtySelect);
+
+    if (playerProfile) {
+      const nameInput = document.getElementById("player-name");
+      nameInput.value = playerProfile.name || "";
+      const idx = avatars.findIndex(a => a.image === playerProfile.avatar);
+      if (idx >= 0) this.selectedAvatarIndex = idx;
+    }
+
+    const startButton = document.getElementById(
