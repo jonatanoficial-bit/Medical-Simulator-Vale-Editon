@@ -54,25 +54,25 @@ button, input, select {
   justify-content: center;
   text-align: center;
 
-  /* ✅ ALTERAÇÃO: capa como fundo */
-  background: url("images/capa.jpg") center/cover no-repeat;
+  /* ✅ AJUSTE: capa do jogo como fundo */
   position: relative;
-  padding: 0;
+  background: url("images/capa.jpg") center/cover no-repeat;
 }
 #cover-screen.active { display: flex; }
 
-/* leve “glass” para manter legibilidade se houver texto por cima */
+/* overlay escuro para legibilidade (não bloqueia clique) */
 #cover-screen::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(800px 600px at 30% 20%, rgba(0,0,0,0.20), rgba(0,0,0,0.55));
+  background: rgba(0,0,0,0.45);
   pointer-events: none;
 }
 
 .cover-content {
   position: relative;
   z-index: 1;
+
   padding: 28px 18px;
   background: rgba(255,255,255,0.08);
   border: var(--border);
@@ -104,7 +104,10 @@ button, input, select {
 .welcome-bg {
   position: absolute;
   inset: 0;
-  background: url("images/corredor.png") center/cover no-repeat;
+
+  /* ✅ AJUSTE: arquivo que existe na sua pasta */
+  background: url("images/hospital_corridor.jpg") center/cover no-repeat;
+
   filter: saturate(1.1) contrast(1.06) brightness(0.72);
   transform: scale(1.02);
 }
