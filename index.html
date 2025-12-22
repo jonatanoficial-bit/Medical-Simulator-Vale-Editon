@@ -1,292 +1,208 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Simulador Clínico</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Simulador Médico</title>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-  <!-- =========================
-       SCREEN: CAPA (TOQUE PARA CONTINUAR)
-       ========================= -->
-  <section id="cover-screen" class="screen active" aria-label="Capa">
-    <div class="cover-bg"></div>
-    <div class="cover-overlay">
-      <img class="cover-logo" src="images/capa.png" alt="Capa do jogo" onerror="this.style.display='none'"/>
+  <!-- SCREEN: COVER -->
+  <section id="cover-screen" class="screen active">
+    <div class="cover-content">
       <h1>Simulador Médico</h1>
       <p>Toque em qualquer lugar para continuar</p>
-      <span class="hint">Mobile-first • Versão Web</span>
+      <p class="muted" style="margin-top:10px">Mobile-first • Versão Web</p>
     </div>
   </section>
 
-  <!-- =========================
-       SCREEN: BEM-VINDO (CORREDOR)
-       ========================= -->
-  <section id="welcome-screen" class="screen" aria-label="Bem-vindo">
-    <div class="welcome-bg"></div>
-    <div class="panel">
-      <h2>Bem-vindo ao Simulador Clínico</h2>
-      <p>
-        Você está iniciando como <b>Médico Residente</b> em um pronto-atendimento.
-        Seu objetivo é <b>avaliar, solicitar exames, tratar</b> e <b>definir diagnóstico</b>.
-      </p>
-      <ul>
-        <li>Escolhas erradas <b>punem</b> sua pontuação e podem levar a deterioração.</li>
-        <li>Exames e tratamentos podem ter <b>tempo de resposta</b>.</li>
-        <li>Ao final de cada caso você recebe <b>relatório</b> com acertos e erros.</li>
-      </ul>
-      <p class="tap-anywhere">Toque em qualquer lugar para avançar</p>
-    </div>
-  </section>
-
-  <!-- =========================
-       SCREEN: CRIAR PERFIL (NOME + AVATAR)
-       ========================= -->
-  <section id="lobby-screen" class="screen" aria-label="Criar perfil">
-    <div class="lobby-bg"></div>
-    <div class="panel wide">
-      <div class="panel-header">
-        <h2>Seu Perfil</h2>
-        <p>Escolha seu nome e avatar. Depois você irá para seu consultório (lobby).</p>
-      </div>
-
-      <div class="form-row">
-        <label for="player-name">Nome</label>
-        <input id="player-name" type="text" maxlength="22" placeholder="Digite seu nome" />
-      </div>
-
-      <h3>Escolha seu avatar</h3>
-      <div id="avatar-selection" class="avatar-grid"></div>
-
-      <div class="actions-row">
-        <button id="start-button" class="primary">Ir para o Consultório</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- =========================
-       SCREEN: CONSULTÓRIO (LOBBY DO USUÁRIO)
-       ========================= -->
-  <section id="office-screen" class="screen" aria-label="Consultório">
-    <div class="office-bg"></div>
-
-    <header class="topbar">
-      <div class="top-left">
-        <img id="player-avatar" class="top-avatar" alt="Avatar" />
-        <div class="top-meta">
-          <div id="player-name-display" class="top-name">—</div>
-          <div class="top-sub">
-            <span id="office-role">Residente</span> •
-            <span id="office-level">Nível 1</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="top-right">
-        <div class="chip">Pontuação: <b id="office-score">0</b></div>
-      </div>
-    </header>
-
-    <main class="office-layout">
-      <section class="card">
-        <h3>Campanha</h3>
-        <p class="muted">
-          Evolua no plantão. Quanto maior o desempenho, maior a promoção.
+  <!-- SCREEN: WELCOME -->
+  <section id="welcome-screen" class="screen">
+    <div class="welcome-content">
+      <div class="welcome-bg"></div>
+      <div class="welcome-panel">
+        <h2>Bem-vindo(a) ao Plantão</h2>
+        <p>
+          Você vai receber pacientes, solicitar exames, medicar e definir o diagnóstico final.
+          Cada decisão afeta pontuação e desfecho.
         </p>
+        <p class="hint">Toque em qualquer lugar para continuar</p>
+      </div>
+    </div>
+  </section>
 
-        <div class="kpi-row">
-          <div class="kpi">
-            <div class="kpi-label">Casos</div>
-            <div id="stat-total" class="kpi-value">0</div>
+  <!-- SCREEN: LOBBY -->
+  <section id="lobby-screen" class="screen">
+    <div class="lobby-content">
+      <h2>Configurar Perfil</h2>
+
+      <div class="player-setup">
+        <label for="player-name">Seu nome</label>
+        <input id="player-name" placeholder="Ex.: Dr. João" autocomplete="off" />
+
+        <h3>Escolha seu avatar</h3>
+        <div id="avatar-selection" class="avatar-selection"></div>
+
+        <button id="start-button" class="primary-btn">Entrar no consultório</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN: OFFICE -->
+  <section id="office-screen" class="screen">
+    <div class="office-header">
+      <div class="office-profile">
+        <img id="player-avatar" class="mini-avatar" src="images/avatar1.png" alt="Avatar" />
+        <div>
+          <div id="player-name-display" class="profile-name">—</div>
+          <div id="player-role-display" class="muted">Residente • Nível 1</div>
+        </div>
+      </div>
+
+      <div class="office-scorebox">
+        <div class="score-label">Pontuação total</div>
+        <div id="player-score-display" class="score-value">0</div>
+      </div>
+    </div>
+
+    <div class="office-body">
+      <div class="office-card">
+        <h3>Desempenho</h3>
+
+        <div class="stats-grid">
+          <div class="stat">
+            <div class="stat-label">Casos</div>
+            <div id="kpi-total" class="stat-value">0</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Acertos</div>
-            <div id="stat-correct" class="kpi-value good">0</div>
+          <div class="stat">
+            <div class="stat-label">Acertos</div>
+            <div id="kpi-correct" class="stat-value">0</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Erros</div>
-            <div id="stat-incorrect" class="kpi-value warn">0</div>
+          <div class="stat">
+            <div class="stat-label">Erros</div>
+            <div id="kpi-wrong" class="stat-value">0</div>
           </div>
-          <div class="kpi">
-            <div class="kpi-label">Óbitos</div>
-            <div id="stat-deaths" class="kpi-value bad">0</div>
+          <div class="stat">
+            <div class="stat-label">Óbitos</div>
+            <div id="kpi-deaths" class="stat-value">0</div>
           </div>
         </div>
 
-        <div class="chart-wrap">
-          <div class="mini-chart">
-            <div class="bar good" id="bar-correct"></div>
-            <div class="bar warn" id="bar-incorrect"></div>
-            <div class="bar bad" id="bar-deaths"></div>
-          </div>
-          <div class="mini-legend">
-            <span class="lg good">Acertos</span>
-            <span class="lg warn">Erros</span>
-            <span class="lg bad">Óbitos</span>
+        <div class="office-card" style="margin-top:12px; padding:12px;">
+          <div class="muted" style="margin-bottom:8px">Distribuição</div>
+          <div class="bar-wrap">
+            <div id="bar-good" class="bar good" style="width:0%"></div>
+            <div id="bar-warn" class="bar warn" style="width:0%"></div>
+            <div id="bar-bad" class="bar bad" style="width:0%"></div>
           </div>
         </div>
 
-        <div class="divider"></div>
-
-        <h3>Configurações do Plantão</h3>
-        <div class="form-grid">
-          <div>
-            <label>Especialidade</label>
-            <select id="specialty-select"></select>
+        <div class="office-controls">
+          <div class="control">
+            <label for="specialty-select">Especialidade</label>
+            <select id="specialty-select">
+              <option value="all">Todas</option>
+            </select>
           </div>
-          <div>
-            <label>Modo</label>
+
+          <div class="control">
+            <label for="mode-select">Modo</label>
             <select id="mode-select">
-              <option value="shift">Plantão (Pressão)</option>
-              <option value="training">Treinamento (Mais leve)</option>
+              <option value="shift">Plantão</option>
+              <option value="training">Treino</option>
             </select>
           </div>
         </div>
 
-        <div class="actions-row">
-          <button id="next-case-button" class="primary">Iniciar Plantão</button>
-        </div>
-      </section>
+        <button id="next-case-button" class="primary-btn">Iniciar atendimento</button>
+      </div>
 
-      <section class="card">
-        <h3>Seu Consultório</h3>
-        <p class="muted">
-          Aqui você acompanha sua carreira. Ao iniciar o plantão, você será enviado à sala de atendimento.
+      <div class="office-card">
+        <h3>Dicas rápidas</h3>
+        <p class="muted" style="line-height:1.45; margin-top:0">
+          • Use História e Exame Físico para guiar seus exames.<br/>
+          • Exames e medicações erradas podem derrubar a pontuação.<br/>
+          • Diagnóstico final encerra o caso e mostra relatório.
         </p>
-
-        <div class="role-box">
-          <div class="role-title">Cargo atual</div>
-          <div id="office-role-big" class="role-big">Residente</div>
-          <div class="role-sub muted">Promoções automáticas por pontuação total</div>
-        </div>
-
-        <div class="divider"></div>
-
-        <h3>Dicas</h3>
-        <ul class="tips">
-          <li>Solicite muitos exames errados = penalidade.</li>
-          <li>Não tratar quando necessário = piora + risco de óbito.</li>
-          <li>Diagnóstico final define a maior parte dos pontos.</li>
-        </ul>
-      </section>
-    </main>
+      </div>
+    </div>
   </section>
 
-  <!-- =========================
-       SCREEN: ATENDIMENTO
-       ========================= -->
-  <section id="game-screen" class="screen" aria-label="Atendimento">
-    <div class="game-bg"></div>
-
-    <header class="topbar">
+  <!-- SCREEN: GAME -->
+  <section id="game-screen" class="screen">
+    <div class="top-bar">
       <div class="top-left">
-        <button id="back-office" class="ghost">Voltar</button>
-        <div class="chip">Nível: <b id="level-display">1</b></div>
-        <div class="chip">Pontuação: <b id="score-display">0</b></div>
+        <div id="level-display" class="top-pill">Nível 1</div>
+        <div id="score-display" class="top-pill">Pontuação: 0</div>
       </div>
+      <button id="back-office" class="ghost-btn">Voltar ao consultório</button>
+    </div>
 
-      <div class="top-right">
-        <button id="pause-button" class="ghost">Pausar</button>
-      </div>
-    </header>
-
-    <main class="game-layout">
-      <aside class="patients-pane card">
-        <h3>Fila</h3>
+    <div class="game-layout">
+      <div class="patients-panel">
+        <h3>Fila de pacientes</h3>
         <div id="patients-list" class="patients-list"></div>
-      </aside>
+      </div>
 
-      <section class="patient-pane card">
-        <div id="patient-details" class="patient-details"></div>
-
-        <!-- PAINEL DE AÇÕES (SEMPRE VISÍVEL) -->
-        <div class="actions-panel">
-          <button class="action-btn" data-action="history">História Clínica</button>
-          <button class="action-btn" data-action="physical_exam">Exame Físico</button>
-
-          <button class="action-btn" data-open="exam" data-exam-group="lab">Exames Laboratoriais</button>
-          <button class="action-btn" data-open="exam" data-exam-group="imaging">Exames de Imagem</button>
-          <button class="action-btn" data-open="exam" data-exam-group="other">Outros Exames</button>
-
-          <button class="action-btn" data-open="treat" data-treat-group="iv">Medicação IV</button>
-          <button class="action-btn" data-open="treat" data-treat-group="home">Medicação Casa/VO</button>
-          <button class="action-btn" data-open="treat" data-treat-group="proc">Procedimentos</button>
-
-          <button class="action-btn danger" data-open="diagnosis">Diagnóstico</button>
+      <div class="patient-panel">
+        <div id="patient-details" class="patient-details">
+          <div class="empty-state">
+            Selecione um paciente na fila para iniciar o atendimento.
+          </div>
         </div>
-      </section>
-    </main>
-  </section>
-
-  <!-- =========================
-       OVERLAY: EXAMES
-       ========================= -->
-  <section id="exam-page" class="overlay" aria-label="Exames">
-    <div class="overlay-card">
-      <div class="overlay-head">
-        <h3 id="exam-title">Exames</h3>
-        <button id="exam-back" class="ghost">Voltar</button>
       </div>
-      <div id="exam-content" class="overlay-body"></div>
     </div>
   </section>
 
-  <!-- =========================
-       OVERLAY: MEDICAÇÃO/PROCEDIMENTOS
-       ========================= -->
-  <section id="treatment-page" class="overlay" aria-label="Tratamentos">
-    <div class="overlay-card">
-      <div class="overlay-head">
-        <h3 id="treatment-title">Tratamentos</h3>
-        <button id="treatment-back" class="ghost">Voltar</button>
-      </div>
-      <div id="treatment-content" class="overlay-body"></div>
+  <!-- OVERLAY: INFO -->
+  <div id="ov-info" class="overlay">
+    <div class="overlay-content">
+      <h3 id="ov-info-title" style="margin:0 0 10px 0;">Info</h3>
+      <div id="ov-info-body"></div>
+      <button id="ov-info-close" class="overlay-back">Voltar ao atendimento</button>
     </div>
-  </section>
+  </div>
 
-  <!-- =========================
-       OVERLAY: DIAGNÓSTICO
-       ========================= -->
-  <section id="diagnosis-page" class="overlay" aria-label="Diagnóstico">
-    <div class="overlay-card">
-      <div class="overlay-head">
-        <h3>Diagnóstico</h3>
-        <button id="diagnosis-back" class="ghost">Voltar</button>
-      </div>
-      <div id="diagnosis-content" class="overlay-body"></div>
+  <!-- OVERLAY: EXAMS -->
+  <div id="ov-exam" class="overlay">
+    <div class="overlay-content">
+      <h3 id="ov-exam-title" style="margin:0 0 10px 0;">Exames</h3>
+      <div id="ov-exam-body"></div>
+      <button id="ov-exam-close" class="overlay-back">Voltar ao atendimento</button>
     </div>
-  </section>
+  </div>
 
-  <!-- =========================
-       OVERLAY: INFO (HISTÓRIA / EXAME FÍSICO / RESULTADOS)
-       ========================= -->
-  <section id="info-page" class="overlay" aria-label="Informações">
-    <div class="overlay-card">
-      <div class="overlay-head">
-        <h3 id="info-title">Informação</h3>
-        <button id="info-back" class="ghost">Voltar</button>
-      </div>
-      <div id="info-content" class="overlay-body"></div>
+  <!-- OVERLAY: MEDS -->
+  <div id="ov-meds" class="overlay">
+    <div class="overlay-content">
+      <h3 id="ov-meds-title" style="margin:0 0 10px 0;">Medicações</h3>
+      <div id="ov-meds-body"></div>
+      <button id="ov-meds-close" class="overlay-back">Voltar ao atendimento</button>
     </div>
-  </section>
+  </div>
 
-  <!-- =========================
-       OVERLAY: RELATÓRIO PÓS-CASO
-       ========================= -->
-  <section id="report-page" class="overlay" aria-label="Relatório">
-    <div class="overlay-card">
-      <div class="overlay-head">
-        <h3>Relatório do Caso</h3>
-        <button id="report-back" class="ghost">Fechar</button>
-      </div>
-      <div id="report-content" class="overlay-body"></div>
+  <!-- OVERLAY: DX -->
+  <div id="ov-dx" class="overlay">
+    <div class="overlay-content">
+      <h3 id="ov-dx-title" style="margin:0 0 10px 0;">Diagnóstico</h3>
+      <div id="ov-dx-body"></div>
+      <button id="ov-dx-close" class="overlay-back">Voltar ao atendimento</button>
     </div>
-  </section>
+  </div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" aria-live="polite"></div>
+  <!-- OVERLAY: REPORT -->
+  <div id="ov-report" class="overlay report-overlay">
+    <div class="overlay-content report-content">
+      <h2 style="margin:0 0 10px 0;">Relatório do Caso</h2>
+      <div id="ov-report-body"></div>
+      <button id="ov-report-close" class="overlay-back">Voltar ao atendimento</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
   <script src="script.js"></script>
 </body>
