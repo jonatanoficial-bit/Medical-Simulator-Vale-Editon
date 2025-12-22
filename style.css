@@ -53,13 +53,28 @@ button, input, select {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: url("/images/capa.png") center/cover no-repeat;
+
+  /* ✅ ALTERAÇÃO: capa como fundo */
+  background: url("images/capa.jpg") center/cover no-repeat;
+  position: relative;
+  padding: 0;
 }
 #cover-screen.active { display: flex; }
 
+/* leve “glass” para manter legibilidade se houver texto por cima */
+#cover-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(800px 600px at 30% 20%, rgba(0,0,0,0.20), rgba(0,0,0,0.55));
+  pointer-events: none;
+}
+
 .cover-content {
+  position: relative;
+  z-index: 1;
   padding: 28px 18px;
-  background: rgba(10,16,26,0.62);
+  background: rgba(255,255,255,0.08);
   border: var(--border);
   border-radius: var(--radius2);
   box-shadow: var(--shadow);
@@ -73,7 +88,7 @@ button, input, select {
 }
 .cover-content p {
   margin: 0;
-  color: rgba(232,238,252,0.86);
+  color: var(--muted);
 }
 
 /* ====== Welcome ====== */
@@ -89,7 +104,7 @@ button, input, select {
 .welcome-bg {
   position: absolute;
   inset: 0;
-  background: url("/images/hospital_corridor.png") center/cover no-repeat;
+  background: url("images/corredor.png") center/cover no-repeat;
   filter: saturate(1.1) contrast(1.06) brightness(0.72);
   transform: scale(1.02);
 }
@@ -277,7 +292,9 @@ button, input, select {
   padding: 16px;
   backdrop-filter: blur(10px);
 }
-.office-card h3 { margin: 0 0 12px 0; }
+.office-card h3 {
+  margin: 0 0 12px 0;
+}
 
 .stats-grid {
   display: grid;
@@ -314,7 +331,11 @@ button, input, select {
   color: var(--text);
 }
 
-.profile-row { display: flex; align-items: center; gap: 12px; }
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 .mini-avatar {
   width: 56px;
   height: 56px;
@@ -363,8 +384,14 @@ button, input, select {
   min-height: calc(100vh - 170px);
 }
 
-.patients-panel h3 { margin: 0 0 10px 0; }
-.patients-list { display: grid; gap: 10px; }
+.patients-panel h3 {
+  margin: 0 0 10px 0;
+}
+
+.patients-list {
+  display: grid;
+  gap: 10px;
+}
 
 .patient-card {
   border-radius: 16px;
@@ -428,7 +455,17 @@ button, input, select {
   margin: 0 0 6px 0;
   font-size: 22px;
 }
-.patient-sub { color: var(--muted); font-size: 12px; }
+.patient-sub {
+  color: var(--muted);
+  font-size: 12px;
+}
+.dot { margin: 0 8px; opacity: 0.7; }
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.18);
+}
 .patient-complaint-big {
   margin-top: 10px;
   color: rgba(232,238,252,0.88);
@@ -441,7 +478,9 @@ button, input, select {
   border-radius: 18px;
   padding: 12px;
 }
-.vitals-box h3 { margin: 0 0 10px 0; }
+.vitals-box h3 {
+  margin: 0 0 10px 0;
+}
 .vitals-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -459,7 +498,9 @@ button, input, select {
 .vital span { color: var(--muted); font-size: 12px; }
 .vital b { font-size: 14px; }
 
-.actions-area { margin-top: 14px; }
+.actions-area {
+  margin-top: 14px;
+}
 .actions-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -479,9 +520,10 @@ button, input, select {
   transition: transform 0.12s ease, background 0.12s ease;
 }
 .action-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,0.08); }
+.action-btn i { color: rgba(77,215,255,0.9); }
 .action-btn span { font-weight: 800; font-size: 13px; }
 
-/* História / Exame físico */
+/* Área de texto (História/Exame físico) */
 .info-container{
   margin-top: 14px;
   padding: 12px 14px;
@@ -570,6 +612,84 @@ button, input, select {
   color: rgba(232,238,252,0.90);
 }
 
+/* ====== Diagnosis ====== */
+.dx-search {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(0,0,0,0.25);
+  color: var(--text);
+  margin-top: 10px;
+  outline: none;
+}
+.dx-suggest { margin-top: 12px; }
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(232,238,252,0.9);
+  font-size: 12px;
+}
+.dx-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+.dx-item {
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+.dx-item:hover { background: rgba(255,255,255,0.08); }
+
+/* ====== Report ====== */
+.report-overlay { z-index: 1000; }
+.report-content h2 { margin: 0 0 10px 0; }
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px 0;
+}
+.report-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 12px;
+}
+.report-card h3 { margin: 0 0 8px 0; }
+.ok { color: var(--ok); }
+.bad { color: var(--danger); }
+
+/* ====== Toast ====== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(18,26,40,0.92);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 1200;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0px);
+}
+
+/* ====== Responsivo ====== */
 @media (max-width: 980px) {
   .office-body { grid-template-columns: 1fr; }
   .game-layout { grid-template-columns: 1fr; }
