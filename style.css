@@ -1,6 +1,5 @@
 /* ============================================================
    Simulador Médico - Style AAA (Mobile-first)
-   (Atualizado: fundos nas telas + correção do espaço vazio no mobile)
    ============================================================ */
 
 :root {
@@ -23,15 +22,13 @@
 }
 
 * { box-sizing: border-box; }
-
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  background:
-    radial-gradient(1200px 900px at 20% 10%, rgba(77,215,255,0.18), transparent 60%),
-    radial-gradient(1000px 900px at 90% 70%, rgba(91,255,176,0.10), transparent 55%),
-    var(--bg);
+  background: radial-gradient(1200px 900px at 20% 10%, rgba(77,215,255,0.18), transparent 60%),
+              radial-gradient(1000px 900px at 90% 70%, rgba(91,255,176,0.10), transparent 55%),
+              var(--bg);
   color: var(--text);
   font-family: var(--font);
 }
@@ -45,65 +42,63 @@ button, input, select {
   display: none;
   min-height: 100vh;
   padding: 18px;
-  position: relative; /* permite ::before de fundo */
-  overflow: hidden;
+  position: relative;
 }
 .screen.active {
   display: block;
 }
 
-/* ====== Fundo padrão para telas (Lobby/Office/Game) ====== */
+/* Fundo padrão das telas (exceto cover/welcome, que têm os próprios) */
 #lobby-screen::before,
 #office-screen::before,
 #game-screen::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: url("images/bg_hospital_02.jpg") center/cover no-repeat;
-  filter: saturate(1.05) contrast(1.05) brightness(0.55);
-  transform: scale(1.02);
+  background:
+    linear-gradient(rgba(11,19,32,0.50), rgba(11,19,32,0.72)),
+    url("./images/bg_hospital_02.jpg"),
+    url("./images/bg_hospital_01.jpg"),
+    url("./images/fundo.jpg");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.05) contrast(1.06);
   z-index: 0;
 }
-
-#lobby-screen > *,
-#office-screen > *,
+#lobby-screen > * ,
+#office-screen > * ,
 #game-screen > * {
   position: relative;
   z-index: 1;
 }
 
-/* ====== Cover (Tela Inicial) ====== */
+/* ====== Cover ====== */
 #cover-screen {
   display: none;
   align-items: center;
   justify-content: center;
   text-align: center;
-  position: relative;
-  overflow: hidden;
+  padding: 0;
 }
 #cover-screen.active { display: flex; }
 
-#cover-screen::before {
-  content: "";
+#cover-screen::before{
+  content:"";
   position: absolute;
   inset: 0;
-  background: url("images/capa.jpg") center/cover no-repeat;
-  filter: saturate(1.05) contrast(1.05) brightness(0.70);
-  transform: scale(1.02);
+  background:
+    linear-gradient(rgba(11,19,32,0.35), rgba(11,19,32,0.70)),
+    url("./images/capa.jpg");
+  background-size: cover;
+  background-position: center;
   z-index: 0;
 }
-
-#cover-screen::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(900px 700px at 50% 30%, rgba(0,0,0,0.10), rgba(0,0,0,0.60));
+#cover-screen .cover-content{
+  position: relative;
   z-index: 1;
 }
 
 .cover-content {
-  position: relative;
-  z-index: 2;
   padding: 28px 18px;
   background: rgba(255,255,255,0.08);
   border: var(--border);
@@ -111,6 +106,7 @@ button, input, select {
   box-shadow: var(--shadow);
   backdrop-filter: blur(10px);
   max-width: 520px;
+  margin: 18px;
 }
 .cover-content h1 {
   margin: 0 0 8px 0;
@@ -135,8 +131,14 @@ button, input, select {
 .welcome-bg {
   position: absolute;
   inset: 0;
-  background: url("images/hospital_corridor.jpg") center/cover no-repeat; /* troque para .png se precisar */
-  filter: saturate(1.1) contrast(1.06) brightness(0.60);
+  background:
+    linear-gradient(rgba(11,19,32,0.10), rgba(11,19,32,0.72)),
+    url("./images/hospital_corridor.jpg"),
+    url("./images/hospital_corridor.png"),
+    url("./images/corredor.png");
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.1) contrast(1.06) brightness(0.90);
   transform: scale(1.02);
 }
 
@@ -554,7 +556,7 @@ button, input, select {
 .action-btn i { color: rgba(77,215,255,0.9); }
 .action-btn span { font-weight: 800; font-size: 13px; }
 
-/* Área de texto (História/Exame físico) */
+/* Área de texto fixa (História/Exame físico/Resultados) */
 .info-container{
   margin-top: 14px;
   padding: 12px 14px;
@@ -596,6 +598,16 @@ button, input, select {
   box-shadow: var(--shadow);
   padding: 16px;
   backdrop-filter: blur(10px);
+}
+
+.overlay-hero{
+  width: 100%;
+  height: 160px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06) center/cover no-repeat;
+  box-shadow: 0 12px 24px rgba(0,0,0,0.30);
+  margin-bottom: 12px;
 }
 
 .overlay-back {
@@ -680,25 +692,6 @@ button, input, select {
 }
 .dx-item:hover { background: rgba(255,255,255,0.08); }
 
-/* ====== Report ====== */
-.report-overlay { z-index: 1000; }
-.report-content h2 { margin: 0 0 10px 0; }
-.report-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin: 12px 0 14px 0;
-}
-.report-card {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 16px;
-  padding: 12px;
-}
-.report-card h3 { margin: 0 0 8px 0; }
-.ok { color: var(--ok); }
-.bad { color: var(--danger); }
-
 /* ====== Toast ====== */
 .toast {
   position: fixed;
@@ -725,10 +718,11 @@ button, input, select {
   .office-body { grid-template-columns: 1fr; }
   .game-layout { grid-template-columns: 1fr; }
 
-  /* >>> CORREÇÃO DO ESPAÇO GIGANTE NO MOBILE <<< */
-  .patients-panel, .patient-panel {
-    min-height: auto;      /* remove o min-height que “empurrava” tudo */
-  }
+  /* remove o “buraco” gigante no mobile */
+  .patients-panel, .patient-panel { min-height: auto; }
+
+  /* fila com altura controlada e scroll */
+  .patients-list { max-height: 44vh; overflow: auto; padding-right: 4px; }
 
   .patient-header { grid-template-columns: 88px 1fr; }
   .vitals-box { grid-column: 1 / -1; }
