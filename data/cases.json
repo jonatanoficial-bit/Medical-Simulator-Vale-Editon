@@ -1,77 +1,77 @@
 [
   {
     "id": "case_appendicitis",
-    "specialty": "clínica",
+    "specialty": "cirurgia",
     "gender": "male",
-    "age": 22,
-    "complaint": "Dor abdominal migratória para FID, náuseas e febre baixa.",
-    "history": "Início há 12h. Dor peri-umbilical que migrou para FID. Sem diarreia. Sem cirurgias prévias.",
-    "physicalExam": "Dor à palpação em FID, defesa leve, Blumberg discreto. Sem icterícia.",
+    "age": 25,
+    "complaint": "Dor abdominal intensa no quadrante inferior direito + náuseas.",
+    "history": "Dor iniciou peri-umbilical e migrou para FID. Náuseas, inapetência. Sem diarreia. Sem alergias conhecidas.",
+    "physicalExam": "Abdome com dor importante em FID, defesa voluntária. Sinal de Blumberg discreto. Desidratação leve.",
     "diagnosis": "Apendicite aguda",
-    "differentials": ["Gastroenterite", "Cólica renal", "Pielonefrite"],
+    "differentials": ["Gastroenterite aguda", "Cólica renal", "Colecistite aguda"],
     "initialSeverity": 0.35,
-    "requiredExams": ["Hemograma completo", "PCR", "Ultrassom de abdome total"],
-    "harmfulExams": ["TC de crânio sem contraste", "Doppler venoso de MMII"],
-    "requiredMeds": ["Soro fisiológico 0,9% 1.000 mL", "Dipirona IV"],
-    "harmfulMeds": ["Heparina IV", "Insulina regular IV (protocolo)"],
+    "requiredExams": ["Hemograma", "PCR", "TC abdome/pelve"],
+    "harmfulExams": ["RM crânio", "AngioTC de tórax"],
+    "requiredMeds": ["Dipirona IV", "SF 0,9% 500 mL", "Acesso venoso periférico"],
+    "harmfulMeds": ["Heparina IV", "Noradrenalina (vasopressor)"],
     "examResults": {
-      "Hemograma completo": "Leucocitose 15.800 com desvio à esquerda.",
-      "PCR": "PCR 6,8 mg/dL (elevada).",
-      "Ultrassom de abdome total": "Apêndice não compressível 8 mm, sinais inflamatórios periappendiculares."
+      "Hemograma": "Leucócitos 15.800 (neutrofilia). Hb 14.2. Plaquetas 280k.",
+      "PCR": "PCR 62 mg/L (elevada).",
+      "TC abdome/pelve": "Apendice espessado com densificação de gordura periappendicular. Sem abscesso."
     },
     "medEffects": {
-      "Soro fisiológico 0,9% 1.000 mL": { "delaySeconds": 3, "severityDelta": -0.08 },
-      "Dipirona IV": { "delaySeconds": 2, "severityDelta": -0.05 }
+      "SF 0,9% 500 mL": { "severityDelta": -0.06, "delaySeconds": 6 },
+      "Dipirona IV": { "severityDelta": -0.05, "delaySeconds": 5 }
     }
   },
   {
     "id": "case_tep",
-    "specialty": "clínica",
+    "specialty": "clinica",
     "gender": "female",
-    "age": 41,
-    "complaint": "Dispneia súbita e dor torácica pleurítica.",
-    "history": "Início súbito há 1h. Usa anticoncepcional. Dor pleurítica, sem febre. Sem tosse produtiva.",
-    "physicalExam": "Taquipneia, taquicardia. Sem crepitações. Panturrilha dolorosa à palpação.",
-    "diagnosis": "TEP (tromboembolismo pulmonar)",
-    "differentials": ["Pneumonia", "Asma aguda", "SCA (IAM/Angina instável)"],
+    "age": 42,
+    "complaint": "Falta de ar súbita + dor torácica pleurítica.",
+    "history": "Início súbito após viagem longa. Dor piora ao inspirar. Sem febre. Sem tosse produtiva. Sem alergias.",
+    "physicalExam": "Taquipneia, taquicardia, SatO2 baixa. Ausculta pulmonar sem estertores importantes.",
+    "diagnosis": "TEP (Tromboembolismo pulmonar)",
+    "differentials": ["Pneumonia comunitária", "Crise asmática", "Síndrome coronariana aguda"],
     "initialSeverity": 0.55,
-    "requiredExams": ["ECG 12 derivações", "D-dímero", "AngioTC de tórax (TEP)"],
-    "harmfulExams": ["Raio-X de abdome", "RM de coluna"],
-    "requiredMeds": ["Oxigênio por cateter", "Heparina IV"],
-    "harmfulMeds": ["Amoxicilina VO", "Insulina regular IV (protocolo)"],
+    "requiredExams": ["ECG 12 derivações", "D-dímero", "AngioTC de tórax"],
+    "harmfulExams": ["TC abdome/pelve", "RM coluna"],
+    "requiredMeds": ["Oxigênio por máscara", "Heparina IV", "Monitorização contínua"],
+    "harmfulMeds": ["SF 0,9% 1000 mL", "Noradrenalina (vasopressor)"],
     "examResults": {
-      "ECG 12 derivações": "Taquicardia sinusal. Sinais inespecíficos.",
-      "D-dímero": "D-dímero 2.400 ng/mL (elevado).",
-      "AngioTC de tórax (TEP)": "Defeitos de enchimento em artérias segmentares compatíveis com TEP."
+      "ECG 12 derivações": "Taquicardia sinusal. S1Q3T3 discreto.",
+      "D-dímero": "D-dímero 3.200 ng/mL (elevado).",
+      "AngioTC de tórax": "Falhas de enchimento em artérias pulmonares segmentares. Compatível com TEP."
     },
     "medEffects": {
-      "Oxigênio por cateter": { "delaySeconds": 2, "severityDelta": -0.08 },
-      "Heparina IV": { "delaySeconds": 4, "severityDelta": -0.10 }
+      "Oxigênio por máscara": { "severityDelta": -0.08, "delaySeconds": 4 },
+      "Heparina IV": { "severityDelta": -0.10, "delaySeconds": 10 }
     }
   },
   {
-    "id": "case_overdose_opioid",
-    "specialty": "emergência",
+    "id": "case_opioid_overdose",
+    "specialty": "emergencia",
     "gender": "male",
     "age": 30,
-    "complaint": "Confusão mental, bradipneia e sonolência após uso de substância.",
-    "history": "Encontrado sonolento. Pupilas puntiformes. Sem trauma evidente. Amigos relatam uso de opioides.",
-    "physicalExam": "Bradipneia, pupilas mióticas, rebaixamento do nível de consciência.",
-    "diagnosis": "Intoxicação/overdose",
-    "differentials": ["Hipoglicemia", "AVC isquêmico", "TCE"],
+    "complaint": "Confusão, bradicardia e sonolência progressiva.",
+    "history": "Encontrado em casa sonolento. Pupilas puntiformes. Histórico suspeito de uso de opioides.",
+    "physicalExam": "Depressão respiratória, pupilas mióticas, rebaixamento do nível de consciência.",
+    "diagnosis": "Overdose de opioides",
+    "differentials": ["Hipoglicemia grave", "AVC isquêmico", "Sepse de foco pulmonar"],
     "initialSeverity": 0.75,
-    "requiredExams": ["Glicemia capilar", "Monitorização cardíaca contínua", "Oximetria contínua"],
-    "harmfulExams": ["Ultrassom de vias urinárias", "Doppler venoso de MMII"],
-    "requiredMeds": ["Naloxona IV", "Ventilação com BVM"],
-    "harmfulMeds": ["Morfina IV", "Fentanil IV"],
+    "requiredExams": ["Glicemia capilar", "Gasometria arterial", "ECG 12 derivações"],
+    "harmfulExams": ["TC abdome/pelve"],
+    "requiredMeds": ["Naloxona IV", "Oxigênio por máscara", "Acesso venoso periférico"],
+    "harmfulMeds": ["Morfina IV"],
     "examResults": {
       "Glicemia capilar": "Glicemia 98 mg/dL.",
-      "Monitorização cardíaca contínua": "Ritmo sinusal, bradicardia leve.",
-      "Oximetria contínua": "SpO2 86% em ar ambiente."
+      "Gasometria arterial": "pH 7,22. PaCO2 62. PaO2 58. Acidose respiratória por hipoventilação.",
+      "ECG 12 derivações": "Bradicardia sinusal."
     },
     "medEffects": {
-      "Naloxona IV": { "delaySeconds": 2, "severityDelta": -0.25 },
-      "Ventilação com BVM": { "delaySeconds": 1, "severityDelta": -0.20 }
+      "Naloxona IV": { "severityDelta": -0.25, "delaySeconds": 2 },
+      "Oxigênio por máscara": { "severityDelta": -0.08, "delaySeconds": 4 }
     }
   }
 ]
