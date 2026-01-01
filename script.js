@@ -559,3 +559,23 @@ class GameUI {
 
     this.examPage = document.getElementById("exam-page");
     this.examContent = document.getElementById("exam-content");
+// ================================
+// BOOTSTRAP DO JOGO (OBRIGATÓRIO)
+// ================================
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const ui = new GameUI();
+    const engine = new GameEngine(ui);
+
+    // carrega dados antes de iniciar UI
+    await engine.loadData();
+
+    // inicializa interface
+    ui.init(engine);
+
+    console.log("[Simulador Médico] Jogo inicializado com sucesso");
+  } catch (err) {
+    console.error("[Simulador Médico] Erro ao iniciar:", err);
+    alert("Erro ao iniciar o jogo. Verifique o console.");
+  }
+});
