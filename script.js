@@ -5,6 +5,11 @@
    Persistência: localStorage
    ============================================================ */
 
+'use strict';
+
+// ================================
+// Helpers
+// ================================
 function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
 function randomBetween(a,b){ return a + Math.random()*(b-a); }
 function randomBetweenInt(a,b){ return Math.floor(randomBetween(a, b+1)); }
@@ -22,13 +27,16 @@ function savePlayerProfile(p){
 let playerProfile = loadPlayerProfile();
 if (playerProfile) window.playerProfile = playerProfile;
 
+// ================================
+// Assets / Catálogos (fallbacks)
+// ================================
 const avatars = [
-  { name:"Avatar 1", image:"./images/avatar1.png" },
-  { name:"Avatar 2", image:"./images/avatar2.png" },
-  { name:"Avatar 3", image:"./images/avatar3.png" },
-  { name:"Avatar 4", image:"./images/avatar4.png" },
-  { name:"Avatar 5", image:"./images/avatar5.png" },
-  { name:"Avatar 6", image:"./images/avatar6.png" }
+  { name:"Avatar 1", image:"images/avatar1.png" },
+  { name:"Avatar 2", image:"images/avatar2.png" },
+  { name:"Avatar 3", image:"images/avatar3.png" },
+  { name:"Avatar 4", image:"images/avatar4.png" },
+  { name:"Avatar 5", image:"images/avatar5.png" },
+  { name:"Avatar 6", image:"images/avatar6.png" }
 ];
 
 function randomName(gender){
@@ -46,11 +54,8 @@ function getRankTitle(level){
 }
 
 function formatVitals(v){
-  return `PA: ${v.sys}/${Math.max(40, Math.round(v.sys*0.55))} mmHg
-FC: ${v.hr} bpm
-FR: ${v.rr} irpm
-SatO2: ${v.spo2}%
-Temp: ${v.temp} °C`;
+  const dia = Math.max(40, Math.round(v.sys*0.55));
+  return `PA: ${v.sys}/${dia} mmHg\nFC: ${v.hr} bpm\nFR: ${v.rr} irpm\nSatO2: ${v.spo2}%\nTemp: ${v.temp} °C`;
 }
 
 function getExamDelaySeconds(examKey){
@@ -59,11 +64,11 @@ function getExamDelaySeconds(examKey){
   if (k.includes("angio")) return 45;
   if (k.includes("rm")) return 60;
   if (k.includes("usg") || k.includes("eco")) return 30;
-  if (k.includes("raio") || k.includes("rx")) return 25;
+  if (k.includes("raio") || k.includes("rx") || k.includes("x")) return 25;
   if (k.includes("gasometria")) return 18;
   if (k.includes("hemograma")) return 22;
   if (k.includes("troponina")) return 26;
-  if (k.includes("d-dímero") || k.includes("d-dimero")) return 24;
+  if (k.includes("d-d") || k.includes("d-dí") || k.includes("d-di")) return 24;
   if (k.includes("ecg")) return 8;
   return 20;
 }
@@ -88,7 +93,7 @@ function defaultCasesFallback(){
       examResults:{
         "Hemograma":"Leucócitos 15.800 (neutrofilia).",
         "PCR":"PCR 62 mg/L (elevada).",
-        "TC abdome/pelve":"Apendice espessado com densificação periappendicular."
+        "TC abdome/pelve":"Apêndice espessado com densificação periappendicular."
       },
       medEffects:{
         "SF 0,9% 500 mL": { "severityDelta": -0.06, "delaySeconds": 6 },
@@ -98,7 +103,7 @@ function defaultCasesFallback(){
   ];
 }
 
-function defaultCatalogsFallback(){
+function defaultCatalogFallback(){
   return {
     exams:{
       laboratory:["Hemograma","PCR","Gasometria arterial","Lactato","Troponina","D-dímero","Glicemia"],
@@ -116,59 +121,34 @@ function defaultCatalogsFallback(){
 
 function fillSpecialties(cases, select){
   const set = new Set();
-  for (const c of (cases||[])) set.add((c.specialty||"").toLowerCase() || "geral");
+  for (const c of (cases||[])){
+    const s = normalize(c.specialty) || "geral";
+    set.add(s);
+  }
   const arr = ["all", ...Array.from(set).sort()];
   select.innerHTML = "";
   for (const s of arr){
     const opt = document.createElement("option");
     opt.value = s;
-    opt.textContent = s === "all" ? "Todas" : s[0].toUpperCase()+s.slice(1);
+    opt.textContent = s === "all" ? "Todas" : (s[0].toUpperCase()+s.slice(1));
     select.appendChild(opt);
   }
 }
 
-function severityToStatus(sev){
-  if (sev >= 0.90) return "critical";
-  if (sev >= 0.70) return "unstable";
-  return "stable";
-}
-
-function statusLabel(st){
-  if (st === "dead") return "Óbito";
-  if (st === "critical") return "Crítico";
-  if (st === "unstable") return "Instável";
-  return "Estável";
-}
-
-function pickExamHeroPath(kind){
-  if (kind === "lab") return "./images/labs.png";
-  if (kind === "img") return "./images/mri.jpg";
-  if (kind === "other") return "./images/mri.png";
-  return "./images/fundo.jpg";
-}
-
+// ================================
+// Engine
+// ================================
 class GameEngine {
   constructor(ui){
     this.ui = ui;
 
-    // ✅ AJUSTE DE JOGABILIDADE (mais realista)
-    // - deteriorationBasePerSecond controla o quanto a severidade sobe por segundo
-    // - deathMinSeconds controla quando a severidade extrema pode virar óbito
-    this.gameplay = {
-      deteriorationBasePerSecond: 0.02, // antes era 0.08 (muito rápido)
-      deathSeverityThreshold: 0.985,
-      deathMinSeconds: 180, // antes era 30s
-      criticalExtraDeterioration: 0.006 // piora extra quando já está crítico (opcional)
-    };
-
+    // Ajuste de jogabilidade (mais tempo para agir)
     this.config = {
       initialLevel: 1,
-      baseNewPatientIntervalMs: 12000,
+      baseNewPatientIntervalMs: 16000,
       tickMs: 1000,
-
-      // ✅ plantão e treinamento agora ficam mais jogáveis
-      training: { deteriorationMultiplier: 0.22, penaltyMultiplier: 0.35 },
-      shift: { deteriorationMultiplier: 0.55, penaltyMultiplier: 1.0 }
+      training: { deteriorationMultiplier: 0.45, penaltyMultiplier: 0.35 },
+      shift: { deteriorationMultiplier: 1.0, penaltyMultiplier: 1.0 }
     };
 
     this.mode = "shift";
@@ -184,19 +164,21 @@ class GameEngine {
     this.casesAttended = 0;
 
     this.cases = [];
-    this.catalogs = null;
+    this.catalog = null;
 
     this.loaded = false;
     this.specialtyFilter = "all";
 
     this.tickInterval = null;
     this.newPatientInterval = null;
+
     this.paused = false;
   }
 
   async loadData(){
+    // cases
     try{
-      const r = await fetch("./data/cases.json", { cache:"no-store" });
+      const r = await fetch("data/cases.json", { cache:"no-store" });
       if (r.ok){
         const j = await r.json();
         this.cases = Array.isArray(j) ? j : (j.cases || []);
@@ -206,13 +188,14 @@ class GameEngine {
     }
     if (!Array.isArray(this.cases) || this.cases.length === 0) this.cases = defaultCasesFallback();
 
+    // catalog
     try{
-      const r2 = await fetch("./data/catalogs.json", { cache:"no-store" });
-      if (r2.ok) this.catalogs = await r2.json();
+      const r2 = await fetch("data/catalog.json", { cache:"no-store" });
+      if (r2.ok) this.catalog = await r2.json();
     }catch{
-      this.catalogs = defaultCatalogsFallback();
+      this.catalog = defaultCatalogFallback();
     }
-    if (!this.catalogs) this.catalogs = defaultCatalogsFallback();
+    if (!this.catalog) this.catalog = defaultCatalogFallback();
 
     this.loaded = true;
   }
@@ -228,14 +211,19 @@ class GameEngine {
     this.patients = [];
     this.score = 0;
     this.activePatientId = null;
-    this.currentLevel = this.config.initialLevel;
-    this.paused = false;
+
+    // mantém totalScore entre sessões
+    if (playerProfile && typeof playerProfile.score === "number") this.totalScore = playerProfile.score;
+
+    this.currentLevel = playerProfile?.level || this.config.initialLevel;
 
     this.ui.updateLevel(this.currentLevel);
     this.ui.updateScore(this.score);
 
     if (this.tickInterval) clearInterval(this.tickInterval);
     if (this.newPatientInterval) clearInterval(this.newPatientInterval);
+
+    this.paused = false;
 
     this.tickInterval = setInterval(() => this.tick(), this.config.tickMs);
     this.newPatientInterval = setInterval(() => this.spawnPatient(), this.config.baseNewPatientIntervalMs);
@@ -249,11 +237,12 @@ class GameEngine {
     if (this.newPatientInterval) clearInterval(this.newPatientInterval);
     this.tickInterval = null;
     this.newPatientInterval = null;
+    this.paused = false;
   }
 
-  togglePause(){
-    this.paused = !this.paused;
-    this.ui.toast(this.paused ? "Jogo pausado" : "Jogo retomado");
+  setPaused(isPaused){
+    this.paused = !!isPaused;
+    this.ui.setPausedUI(this.paused);
   }
 
   tick(){
@@ -268,27 +257,25 @@ class GameEngine {
 
       p.time += 1;
 
-      // ✅ Piora mais lenta e mais "orgânica"
-      let deterioration = this.gameplay.deteriorationBasePerSecond * mult;
-
-      // Se já está crítico, piora um pouco mais, mas ainda jogável
-      if (p.severity >= 0.85) deterioration += this.gameplay.criticalExtraDeterioration * mult;
-
+      // Deterioração mais lenta (antes 0.08)
+      // ~1.2min até crítico extremo se não fizer nada (mais realista)
+      const baseDeterioration = 0.028;
+      const deterioration = baseDeterioration * mult;
       p.severity = clamp(p.severity + deterioration, 0, 1);
 
-      p.vitals.hr = Math.round(70 + p.severity * 60 + randomBetween(-3, 3));
-      p.vitals.rr = Math.round(14 + p.severity * 14 + randomBetween(-2, 2));
+      p.vitals.hr = Math.round(70 + p.severity * 55 + randomBetween(-3, 3));
+      p.vitals.rr = Math.round(14 + p.severity * 12 + randomBetween(-2, 2));
       p.vitals.spo2 = Math.round(98 - p.severity * 18 + randomBetween(-1, 1));
-      p.vitals.sys = Math.round(125 - p.severity * 40 + randomBetween(-3, 3));
-      p.vitals.temp = round1(36.7 + p.severity * 2.2 + randomBetween(-0.2, 0.2));
+      p.vitals.sys = Math.round(125 - p.severity * 38 + randomBetween(-3, 3));
+      p.vitals.temp = round1(36.7 + p.severity * 2.0 + randomBetween(-0.2, 0.2));
 
       this.applyQueuedEffects(p);
 
-      // ✅ Óbito menos agressivo (precisa estar extremo e por mais tempo)
-      if (p.severity >= this.gameplay.deathSeverityThreshold && p.time > this.gameplay.deathMinSeconds){
+      // morte: exige severidade alta E tempo
+      if (p.severity >= 0.99 && p.time > 75){
         p.status = "dead";
         this.stats.deaths += 1;
-        this.ui.toast(`Óbito: ${p.name}`);
+        this.ui.onPatientDied(p);
       }
     }
 
@@ -306,8 +293,8 @@ class GameEngine {
       return normalize(c.specialty) === normalize(this.specialtyFilter);
     });
 
-    const pool = candidate.length ? candidate : this.cases;
-    const caseData = pool[Math.floor(Math.random() * pool.length)];
+    const list = candidate.length ? candidate : this.cases;
+    const caseData = list[Math.floor(Math.random() * list.length)];
 
     const id = `p_${Date.now()}_${Math.floor(Math.random()*9999)}`;
     const gender = caseData.gender || (Math.random() > 0.5 ? "male" : "female");
@@ -332,10 +319,7 @@ class GameEngine {
       requested: { history:false, physical_exam:false, exams:[], meds:[], diagnosis:null },
       queuedEffects: [],
       time: 0,
-
-      // (mantém a severidade inicial do caso, mas agora o tempo de evolução está melhor)
-      severity: clamp(caseData.initialSeverity ?? 0.25, 0, 1),
-
+      severity: clamp(caseData.initialSeverity ?? 0.22, 0, 1),
       status: "waiting",
       vitals: { hr:92, rr:18, spo2:97, sys:128, temp:36.8 }
     };
@@ -363,35 +347,14 @@ class GameEngine {
 
     if (action === "history"){
       p.requested.history = true;
-      this.ui.setInfo("História Clínica", p.history);
+      this.ui.showInfo("História Clínica", p.history);
       return;
     }
 
     if (action === "physical_exam"){
       p.requested.physical_exam = true;
       const vtxt = formatVitals(p.vitals);
-      this.ui.setInfo("Exame Físico", `${p.physicalExam}\n\nSinais vitais:\n${vtxt}`);
-      return;
-    }
-
-    if (action === "open_exam_overlay"){
-      this.ui.showExamOverlay(payload?.kind || "lab", payload?.title || "Exames", payload?.items || [], (examKey) => {
-        this.performAction(patientId, "request_exam", { examKey });
-      });
-      return;
-    }
-
-    if (action === "open_treat_overlay"){
-      this.ui.showTreatmentOverlay(payload?.title || "Tratamentos", payload?.items || [], (medKey) => {
-        this.performAction(patientId, "give_med", { medKey });
-      });
-      return;
-    }
-
-    if (action === "open_dx_overlay"){
-      this.ui.showDiagnosisOverlay(payload?.items || [], (dx) => {
-        this.performAction(patientId, "final_diagnosis", { diagnosis: dx });
-      });
+      this.ui.showInfo("Exame Físico", `${p.physicalExam}\n\nSinais vitais:\n${vtxt}`);
       return;
     }
 
@@ -441,7 +404,7 @@ class GameEngine {
 
     for (const e of ready){
       if (e.type === "exam_result"){
-        this.ui.setInfo(`Resultado: ${e.examKey}`, e.result);
+        this.ui.showExamResult(e.examKey, e.result);
       } else if (e.type === "med_effect"){
         const delta = e.effect.severityDelta || 0;
         patient.severity = clamp(patient.severity + delta, 0, 1);
@@ -451,6 +414,7 @@ class GameEngine {
 
   evaluateCase(patient){
     const diagCorrect = normalize(patient.requested.diagnosis) === normalize(patient.diagnosis);
+
     const requiredExams = patient.requiredExams || [];
     const requiredMeds = patient.requiredMeds || [];
     const harmfulExams = patient.harmfulExams || [];
@@ -475,11 +439,11 @@ class GameEngine {
     points -= wrongExams.length * 10 * penaltyMult;
     points -= wrongMeds.length * 18 * penaltyMult;
 
-    const timePenalty = Math.max(0, Math.floor(patient.time / 6));
+    const timePenalty = Math.max(0, Math.floor(patient.time / 8));
     points -= timePenalty * 2 * penaltyMult;
 
     let outcome = "stable";
-    if (!diagCorrect && (wrongMeds.length > 0 || missingMeds.length > 1) && patient.severity > 0.85) outcome = "death";
+    if (!diagCorrect && (wrongMeds.length > 0 || missingMeds.length > 1) && patient.severity > 0.92) outcome = "death";
     else if (diagCorrect && missingMeds.length === 0) outcome = "improved";
 
     if (outcome === "death"){
@@ -495,8 +459,14 @@ class GameEngine {
 
     this.score += points;
     this.totalScore += points;
-    this.ui.updateScore(this.score);
 
+    // progressão
+    if (this.totalScore > 300 && this.currentLevel < 2) this.currentLevel = 2;
+    if (this.totalScore > 800 && this.currentLevel < 3) this.currentLevel = 3;
+    if (this.totalScore > 1500 && this.currentLevel < 4) this.currentLevel = 4;
+
+    // perfil persistente
+    if (!playerProfile) playerProfile = window.playerProfile || null;
     if (playerProfile){
       playerProfile.score = this.totalScore;
       playerProfile.level = this.currentLevel;
@@ -506,40 +476,43 @@ class GameEngine {
       window.playerProfile = playerProfile;
     }
 
+    this.ui.updateScore(this.score);
+    this.ui.updateLevel(this.currentLevel);
+
+    // relatório
     this.ui.showCaseReport({
-      patient,
-      diagCorrect,
-      missingExams,
-      missingMeds,
-      wrongExams,
-      wrongMeds,
-      points,
-      outcome
+      patient, diagCorrect, missingExams, missingMeds, wrongExams, wrongMeds, points, outcome
     });
 
+    // remove e seleciona próximo
     this.patients = this.patients.filter(p => p.id !== patient.id);
     if (this.patients.length) this.activePatientId = this.patients[0].id;
-    else { this.activePatientId = null; this.spawnPatient(); this.activePatientId = this.patients[0]?.id || null; }
+    else {
+      this.activePatientId = null;
+      this.spawnPatient();
+      this.activePatientId = this.patients[0]?.id || null;
+    }
 
-    if (this.totalScore > 300 && this.currentLevel < 2) this.currentLevel = 2;
-    if (this.totalScore > 800 && this.currentLevel < 3) this.currentLevel = 3;
-    if (this.totalScore > 1500 && this.currentLevel < 4) this.currentLevel = 4;
-
-    this.ui.updateLevel(this.currentLevel);
     this.ui.refreshPatients(this.patients, this.activePatientId);
   }
 }
 
+// ================================
+// UI
+// ================================
 class GameUI {
   constructor(){
+    // Screens
     this.coverScreen = document.getElementById("cover-screen");
     this.welcomeScreen = document.getElementById("welcome-screen");
     this.lobbyScreen = document.getElementById("lobby-screen");
     this.officeScreen = document.getElementById("office-screen");
     this.gameScreen = document.getElementById("game-screen");
 
+    // Lobby/office fields
     this.avatarSelection = document.getElementById("avatar-selection");
 
+    // Office UI
     this.officeAvatar = document.getElementById("office-avatar");
     this.officeName = document.getElementById("office-name");
     this.officeLevel = document.getElementById("office-level");
@@ -552,30 +525,41 @@ class GameUI {
     this.specialtySelect = document.getElementById("specialty-select");
     this.modeSelect = document.getElementById("mode-select");
 
+    // Game UI
     this.levelDisplay = document.getElementById("level-display");
     this.scoreDisplay = document.getElementById("score-display");
     this.patientsList = document.getElementById("patients-list");
     this.patientDetails = document.getElementById("patient-details");
+    this.pauseBtn = document.getElementById("pause-btn");
 
+    // Overlays
     this.examPage = document.getElementById("exam-page");
     this.examContent = document.getElementById("exam-content");
-// ================================
-// BOOTSTRAP DO JOGO (OBRIGATÓRIO)
-// ================================
-document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    const ui = new GameUI();
-    const engine = new GameEngine(ui);
+    this.examBack = document.getElementById("exam-back");
 
-    // carrega dados antes de iniciar UI
-    await engine.loadData();
+    this.treatmentPage = document.getElementById("treatment-page");
+    this.treatmentContent = document.getElementById("treatment-content");
+    this.treatmentBack = document.getElementById("treatment-back");
 
-    // inicializa interface
-    ui.init(engine);
+    this.diagnosisPage = document.getElementById("diagnosis-page");
+    this.diagnosisContent = document.getElementById("diagnosis-content");
+    this.diagnosisBack = document.getElementById("diagnosis-back");
 
-    console.log("[Simulador Médico] Jogo inicializado com sucesso");
-  } catch (err) {
-    console.error("[Simulador Médico] Erro ao iniciar:", err);
-    alert("Erro ao iniciar o jogo. Verifique o console.");
+    this.toastEl = null;
+    this.reportOverlay = null;
+
+    this.selectedAvatarIndex = 0;
+
+    // painel de mensagens do paciente (persistente)
+    this.infoTitle = "Messages";
+    this.infoText = "Toque em História Clínica ou Exame Físico para ver detalhes aqui.";
   }
-});
+
+  init(engine){
+    // Toque na capa -> welcome
+    const goWelcome = () => {
+      this.coverScreen.classList.remove("active");
+      this.welcomeScreen.classList.add("active");
+    };
+    this.coverScreen.addEventListener("click", goWelcome);
+    this.coverScreen.addEventListener("touchend", (e) => { e.preventDefault(); goWelcome();
