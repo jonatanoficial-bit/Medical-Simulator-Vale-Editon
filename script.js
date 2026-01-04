@@ -562,4 +562,476 @@ class GameUI {
       this.welcomeScreen.classList.add("active");
     };
     this.coverScreen.addEventListener("click", goWelcome);
-    this.coverScreen.addEventListener("touchend", (e) => { e.preventDefault(); goWelcome();
+    this.coverScreen.addEventListener("touchend", (e) => { e.preventDefault(); goWelcome(); }, { passive:false });
+
+    // Toque na welcome -> lobby
+    const goLobby = () => {
+      this.welcomeScreen.classList.remove("active");
+      this.lobbyScreen.classList.add("active");
+    };
+    this.welcomeScreen.addEventListener("click", goLobby);
+    this.welcomeScreen.addEventListener("touchend", (e) => { e.preventDefault(); goLobby(); }, { passive:false });
+
+    // Avatares
+    this.renderAvatars();
+
+    // Restore profile
+    if (playerProfile){
+      const nameInput = document.getElementById("player-name");
+      nameInput.value = playerProfile.name || "";
+      const idx = avatars.findIndex(a => a.image === playerProfile.avatar);
+      if (idx >= 0) this.selectedAvatarIndex = idx;
+      this.renderAvatars(); // re-render com selecionado
+    }
+
+    // Start button -> office
+    document.getElementById("start-button").addEventListener("click", () => {
+      const name = document.getElementById("player-name").value.trim();
+      if (!name){ alert("Por favor, insira seu nome."); return; }
+
+      engine.setPlayer(name, this.selectedAvatarIndex);
+
+      playerProfile = {
+        name,
+        avatar: avatars[this.selectedAvatarIndex].image,
+        role: getRankTitle(engine.currentLevel),
+        level: engine.currentLevel,
+        score: (playerProfile?.score ?? 0),
+        stats: playerProfile?.stats || { correct:0, incorrect:0, deaths:0 }
+      };
+      window.playerProfile = playerProfile;
+      savePlayerProfile(playerProfile);
+
+      this.lobbyScreen.classList.remove("active");
+      this.updateOffice(engine);
+      this.officeScreen.classList.add("active");
+    });
+
+    // Next case -> game
+    document.getElementById("next-case-button").addEventListener("click", () => {
+      engine.setSpecialtyFilter(this.specialtySelect.value);
+      engine.setMode(this.modeSelect.value);
+
+      this.officeScreen.classList.remove("active");
+      this.gameScreen.classList.add("active");
+
+      engine.start();
+    });
+
+    // Back office
+    document.getElementById("back-office").addEventListener("click", () => {
+      engine.stop();
+      this.officeScreen.classList.remove("active");
+      this.lobbyScreen.classList.add("active");
+    });
+
+    // Pause
+    this.pauseBtn.addEventListener("click", () => {
+      engine.setPaused(!engine.paused);
+    });
+
+    // Overlay back
+    this.examBack.addEventListener("click", () => this.hideOverlay("exam"));
+    this.treatmentBack.addEventListener("click", () => this.hideOverlay("treatment"));
+    this.diagnosisBack.addEventListener("click", () => this.hideOverlay("diagnosis"));
+
+    // inicializa selects de especialidade após loadData
+    fillSpecialties(engine.cases, this.specialtySelect);
+    this.updateOffice(engine);
+  }
+
+  setPausedUI(isPaused){
+    this.pauseBtn.textContent = isPaused ? "Continuar" : "Pausar";
+    this.toast(isPaused ? "Plantão pausado" : "Plantão retomado");
+  }
+
+  renderAvatars(){
+    this.avatarSelection.innerHTML = "";
+    avatars.forEach((a, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "avatar-btn";
+      btn.innerHTML = `<img src="${a.image}" alt="${a.name}"/><span>${a.name}</span>`;
+      if (i === this.selectedAvatarIndex) btn.classList.add("selected");
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.selectedAvatarIndex = i;
+        [...this.avatarSelection.querySelectorAll(".avatar-btn")].forEach(x => x.classList.remove("selected"));
+        btn.classList.add("selected");
+      });
+      this.avatarSelection.appendChild(btn);
+    });
+  }
+
+  updateOffice(engine){
+    const prof = playerProfile || { name: engine.player.name, avatar: avatars[engine.player.avatarIndex]?.image };
+
+    // avatar no office (background)
+    const ava = prof.avatar || avatars[0].image;
+    this.officeAvatar.style.backgroundImage = `url("${ava}")`;
+
+    this.officeName.textContent = prof.name || "—";
+    const lvl = prof.level || engine.currentLevel || 1;
+    const role = prof.role || getRankTitle(lvl);
+    this.officeLevel.textContent = `${role} • Nível ${lvl}`;
+    this.officeScore.textContent = String(prof.score ?? 0);
+
+    const stats = prof.stats || engine.stats || { correct:0, incorrect:0, deaths:0 };
+    const total = (stats.correct||0) + (stats.incorrect||0);
+    this.statTotal.textContent = String(total);
+    this.statCorrect.textContent = String(stats.correct||0);
+    this.statIncorrect.textContent = String(stats.incorrect||0);
+    this.statDeaths.textContent = String(stats.deaths||0);
+
+    const playerAvatarImg = document.getElementById("player-avatar");
+    const playerNameDisplay = document.getElementById("player-name-display");
+    if (playerAvatarImg){
+      playerAvatarImg.src = ava;
+      playerAvatarImg.style.display = "inline-block";
+    }
+    if (playerNameDisplay){
+      playerNameDisplay.textContent = prof.name || "—";
+    }
+  }
+
+  updateLevel(level){
+    this.levelDisplay.textContent = `Nível ${level}`;
+  }
+
+  updateScore(score){
+    this.scoreDisplay.textContent = `Pontuação: ${score}`;
+  }
+
+  refreshPatients(patients, activeId){
+    this.patientsList.innerHTML = "";
+
+    if (!patients || patients.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "Nenhum paciente no momento.";
+      this.patientsList.appendChild(empty);
+      return;
+    }
+
+    for (const p of patients){
+      const card = document.createElement("div");
+      card.className = "patient-card";
+      if (p.id === activeId) card.classList.add("active");
+
+      const status = this.statusLabel(p);
+      card.innerHTML = `
+        <div class="patient-card-top">
+          <div class="patient-name">${p.name}</div>
+          <div class="patient-status ${status.cls}">${status.text}</div>
+        </div>
+        <div class="patient-complaint">${p.complaint}</div>
+      `;
+
+      card.addEventListener("click", () => window.engine?.setActivePatient(p.id));
+      this.patientsList.appendChild(card);
+    }
+  }
+
+  statusLabel(p){
+    if (p.status === "dead") return { text:"Óbito", cls:"status-dead" };
+    if (p.severity >= 0.92) return { text:"Crítico", cls:"status-critical" };
+    if (p.severity >= 0.65) return { text:"Instável", cls:"status-unstable" };
+    return { text:"Estável", cls:"status-stable" };
+  }
+
+  renderPatientDetails(p, engine){
+    if (!p){
+      this.patientDetails.innerHTML = `<div class="empty-state">Selecione um paciente na fila.</div>`;
+      return;
+    }
+
+    // portrait
+    const portrait = p.gender === "female" ? "images/patient_female.png" : "images/patient_male.png";
+
+    const status = this.statusLabel(p);
+
+    this.patientDetails.innerHTML = `
+      <div class="patient-header">
+        <div class="patient-portrait" style="background-image:url('${portrait}')"></div>
+        <div class="patient-main">
+          <h2>${p.name} (${p.age} anos)</h2>
+          <div class="patient-sub">
+            <span class="badge">${status.text}</span>
+            <span class="dot">•</span>
+            <span>${(p.gender === "female") ? "Feminino" : "Masculino"}</span>
+          </div>
+          <div class="patient-complaint-big">${p.complaint}</div>
+        </div>
+
+        <div class="vitals-box">
+          <h3>Sinais Vitais</h3>
+          <div class="vitals-grid">
+            <div class="vital"><span>PA</span><b>${p.vitals.sys}/${Math.max(40, Math.round(p.vitals.sys*0.55))}</b></div>
+            <div class="vital"><span>FC</span><b>${p.vitals.hr} bpm</b></div>
+            <div class="vital"><span>FR</span><b>${p.vitals.rr} irpm</b></div>
+            <div class="vital"><span>SatO2</span><b>${p.vitals.spo2}%</b></div>
+            <div class="vital"><span>Temp</span><b>${p.vitals.temp} °C</b></div>
+            <div class="vital"><span>Tempo</span><b>${p.time}s</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-area">
+        <div class="actions-row">
+          <button class="action-btn" data-act="history"><i>📄</i><span>História Clínica</span></button>
+          <button class="action-btn" data-act="physical_exam"><i>🩺</i><span>Exame Físico</span></button>
+          <button class="action-btn" data-act="diagnosis"><i>✅</i><span>Diagnóstico</span></button>
+        </div>
+
+        <div class="actions-row">
+          <button class="action-btn" data-act="exam_lab"><i>🧪</i><span>Exames Laboratoriais</span></button>
+          <button class="action-btn" data-act="exam_img"><i>🩻</i><span>Exames de Imagem</span></button>
+          <button class="action-btn" data-act="exam_other"><i>📟</i><span>Outros Exames</span></button>
+        </div>
+
+        <div class="actions-row">
+          <button class="action-btn" data-act="med_iv"><i>💉</i><span>Medicação IV</span></button>
+          <button class="action-btn" data-act="med_home"><i>💊</i><span>Medicação Casa/VO</span></button>
+          <button class="action-btn" data-act="procedures"><i>🧰</i><span>Procedimentos</span></button>
+        </div>
+
+        <div class="info-container">
+          <h4>${this.infoTitle}</h4>
+          <pre>${this.infoText}</pre>
+        </div>
+      </div>
+    `;
+
+    // bind actions
+    this.patientDetails.querySelectorAll(".action-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const act = btn.getAttribute("data-act");
+        if (act === "history") engine.performAction(p.id, "history");
+        else if (act === "physical_exam") engine.performAction(p.id, "physical_exam");
+        else if (act === "diagnosis") this.openDiagnosis(engine, p);
+        else if (act === "exam_lab") this.openExamList(engine, p, "laboratory");
+        else if (act === "exam_img") this.openExamList(engine, p, "imaging");
+        else if (act === "exam_other") this.openExamList(engine, p, "others");
+        else if (act === "med_iv") this.openTreatmentList(engine, p, "iv");
+        else if (act === "med_home") this.openTreatmentList(engine, p, "home");
+        else if (act === "procedures") this.openTreatmentList(engine, p, "procedures");
+      });
+    });
+  }
+
+  showInfo(title, text){
+    this.infoTitle = title;
+    this.infoText = String(text || "");
+    // força re-render do paciente ativo para manter a mensagem visível (não some)
+    const active = window.engine?.getActivePatient();
+    if (active) this.renderPatientDetails(active, window.engine);
+  }
+
+  showExamResult(examKey, result){
+    this.showInfo(`Resultado: ${examKey}`, result);
+  }
+
+  onPatientDied(p){
+    this.toast(`${p.name} evoluiu para óbito.`);
+  }
+
+  openExamList(engine, patient, category){
+    const catalog = engine.catalog || defaultCatalogFallback();
+    const list = (catalog.exams && catalog.exams[category]) ? catalog.exams[category] : [];
+    const title = category === "laboratory" ? "Exames Laboratoriais"
+      : category === "imaging" ? "Exames de Imagem"
+      : "Outros Exames";
+
+    const bg = category === "laboratory" ? "images/labs.png"
+      : category === "imaging" ? "images/xray.jpg"
+      : "images/bg_hospital_01.jpg";
+
+    this.examContent.innerHTML = `
+      <div class="overlay-hero" style="background-image:url('${bg}')"></div>
+      <h2>${title}</h2>
+      <div class="muted">Escolha qualquer exame. Você pode errar e perder pontos.</div>
+      <div class="grid-list">
+        ${list.map(x => `<button class="grid-item" type="button" data-exam="${x}">${x}</button>`).join("")}
+      </div>
+    `;
+
+    this.examContent.querySelectorAll("[data-exam]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const examKey = btn.getAttribute("data-exam");
+        engine.performAction(patient.id, "request_exam", { examKey });
+      });
+    });
+
+    this.showOverlay("exam");
+  }
+
+  openTreatmentList(engine, patient, category){
+    const catalog = engine.catalog || defaultCatalogFallback();
+    const list = (catalog.treatments && catalog.treatments[category]) ? catalog.treatments[category] : [];
+    const title = category === "iv" ? "Medicação IV"
+      : category === "home" ? "Medicação Casa/VO"
+      : "Procedimentos";
+
+    const bg = category === "iv" ? "images/bg_hospital_02.jpg"
+      : category === "home" ? "images/bg_hospital_01.jpg"
+      : "images/bg_hospital_02.jpg";
+
+    this.treatmentContent.innerHTML = `
+      <div class="overlay-hero" style="background-image:url('${bg}')"></div>
+      <h2>${title}</h2>
+      <div class="muted">Use com estratégia. Algumas escolhas podem piorar o paciente.</div>
+      <div class="grid-list">
+        ${list.map(x => `<button class="grid-item" type="button" data-med="${x}">${x}</button>`).join("")}
+      </div>
+    `;
+
+    this.treatmentContent.querySelectorAll("[data-med]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const medKey = btn.getAttribute("data-med");
+        engine.performAction(patient.id, "give_med", { medKey });
+      });
+    });
+
+    this.showOverlay("treatment");
+  }
+
+  openDiagnosis(engine, patient){
+    const catalog = engine.catalog || defaultCatalogFallback();
+    const dxList = Array.isArray(catalog.diagnoses) ? catalog.diagnoses : [];
+
+    this.diagnosisContent.innerHTML = `
+      <h2>Diagnóstico</h2>
+      <div class="muted">Escolha o diagnóstico final para concluir o caso.</div>
+
+      <input id="dx-search" class="dx-search" placeholder="Pesquisar diagnóstico..." />
+
+      <div class="dx-list" id="dx-list">
+        ${dxList.map(x => `<button class="dx-item" type="button" data-dx="${x}">${x}</button>`).join("")}
+      </div>
+    `;
+
+    const listEl = this.diagnosisContent.querySelector("#dx-list");
+    const searchEl = this.diagnosisContent.querySelector("#dx-search");
+
+    const render = (q) => {
+      const qq = normalize(q);
+      const filtered = dxList.filter(x => normalize(x).includes(qq));
+      listEl.innerHTML = filtered.map(x => `<button class="dx-item" type="button" data-dx="${x}">${x}</button>`).join("");
+      listEl.querySelectorAll("[data-dx]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const diagnosis = btn.getAttribute("data-dx");
+          engine.performAction(patient.id, "final_diagnosis", { diagnosis });
+          this.hideOverlay("diagnosis");
+        });
+      });
+    };
+
+    render("");
+
+    searchEl.addEventListener("input", () => render(searchEl.value));
+
+    this.showOverlay("diagnosis");
+  }
+
+  showOverlay(which){
+    if (which === "exam") this.examPage.classList.remove("hidden");
+    if (which === "treatment") this.treatmentPage.classList.remove("hidden");
+    if (which === "diagnosis") this.diagnosisPage.classList.remove("hidden");
+  }
+
+  hideOverlay(which){
+    if (which === "exam") this.examPage.classList.add("hidden");
+    if (which === "treatment") this.treatmentPage.classList.add("hidden");
+    if (which === "diagnosis") this.diagnosisPage.classList.add("hidden");
+  }
+
+  showCaseReport(r){
+    // remove anterior
+    if (this.reportOverlay) this.reportOverlay.remove();
+
+    const { patient, diagCorrect, missingExams, missingMeds, wrongExams, wrongMeds, points, outcome } = r;
+
+    const overlay = document.createElement("div");
+    overlay.className = "overlay report-overlay";
+    overlay.innerHTML = `
+      <div class="overlay-content report-content">
+        <h2>Relatório do Caso</h2>
+        <div class="muted">${patient.name} • ${patient.age} anos • Desfecho: <b class="${outcome === "death" ? "bad" : "ok"}">${outcome === "death" ? "Óbito" : "Alta"}</b></div>
+
+        <div class="report-grid">
+          <div class="report-card">
+            <h3>Diagnóstico</h3>
+            <div>${diagCorrect ? `<b class="ok">Correto</b>` : `<b class="bad">Incorreto</b>`}</div>
+            <div class="muted" style="margin-top:6px;">Esperado: ${patient.diagnosis}</div>
+          </div>
+          <div class="report-card">
+            <h3>Pontuação</h3>
+            <div><b>${points}</b></div>
+            <div class="muted" style="margin-top:6px;">Quanto mais rápido e completo, melhor.</div>
+          </div>
+        </div>
+
+        <div class="result-box">
+          <h4>Resumo</h4>
+          <pre>${[
+            `Exames faltando: ${missingExams.length ? missingExams.join(", ") : "Nenhum"}`,
+            `Medicações faltando: ${missingMeds.length ? missingMeds.join(", ") : "Nenhuma"}`,
+            `Exames inadequados: ${wrongExams.length ? wrongExams.join(", ") : "Nenhum"}`,
+            `Condutas inadequadas: ${wrongMeds.length ? wrongMeds.join(", ") : "Nenhuma"}`
+          ].join("\n")}</pre>
+        </div>
+
+        <button class="overlay-back" id="report-close">Continuar</button>
+      </div>
+    `;
+    overlay.querySelector("#report-close").addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+    this.reportOverlay = overlay;
+  }
+
+  toast(msg){
+    if (!this.toastEl){
+      const t = document.createElement("div");
+      t.className = "toast";
+      document.body.appendChild(t);
+      this.toastEl = t;
+    }
+    this.toastEl.textContent = msg;
+    this.toastEl.classList.add("show");
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(() => this.toastEl.classList.remove("show"), 2200);
+  }
+}
+
+// ================================
+// Bootstrap
+// ================================
+window.addEventListener("DOMContentLoaded", async () => {
+  const ui = new GameUI();
+  const engine = new GameEngine(ui);
+
+  // expõe para cliques dos cards
+  window.engine = engine;
+
+  await engine.loadData();
+
+  // (re)preenche especialidades agora que os cases carregaram
+  fillSpecialties(engine.cases, ui.specialtySelect);
+
+  ui.init(engine);
+
+  // garante que a welcome tenha background (se existir)
+  const welcomeBg = document.querySelector(".welcome-bg");
+  if (welcomeBg){
+    // usa o arquivo do projeto (não quebra se mudar)
+    welcomeBg.style.backgroundImage = `url('images/hospital_corridor.png')`;
+  }
+
+  // capa: deixa a imagem como fundo (capa do jogo)
+  const cover = document.getElementById("cover-screen");
+  if (cover){
+    cover.style.backgroundImage = `url('images/capa.jpg')`;
+    cover.style.backgroundSize = "cover";
+    cover.style.backgroundPosition = "center";
+  }
+});
